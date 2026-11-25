@@ -15,7 +15,7 @@ const buzz = (t='light') => { try{ tg && tg.HapticFeedback.impactOccurred(t); }c
 function toast(t){ const d=document.createElement('div'); d.className='toast'; d.textContent=t; document.body.appendChild(d); setTimeout(()=>d.remove(),1400); }
 const toggle = (arr, id) => { const i=arr.indexOf(id); i<0?arr.push(id):arr.splice(i,1); return i<0; };
 
-let tab = 'home', homeSeg = 'problems', libSeg = 'all', libQ = '', libQuality = '';
+let tab = 'film', homeSeg = 'problems', libQ = '', libQuality = '';
 let view = null; // {type:'problem'|'quality', id}
 
 function qualityXP(k){ return S.done.filter(id => ITEMS[id] && ITEMS[id].q.includes(k)).length; }
@@ -75,17 +75,15 @@ function renderQuality(k){
 }
 
 function renderLib(){
-  const types = [['all','Всё'],['film','Фильмы'],['series','Сериалы'],['book','Книги']];
+  const TITLES = {film:'Фильмы', series:'Сериалы', book:'Книги'};
   let ids = Object.keys(ITEMS).filter(id=>{
     const it=ITEMS[id];
-    if (libSeg!=='all' && it.t!==libSeg) return false;
+    if (it.t!==tab) return false;
     if (libQuality && !it.q.includes(libQuality)) return false;
     if (libQ && !(it.title+' '+(it.author||'')).toLowerCase().includes(libQ.toLowerCase())) return false;
     return true;
   });
-  app.innerHTML = `<div class="top"><h1>Библиотека</h1></div>
-  <input class="search" id="q" placeholder="Поиск по названию" value="${esc(libQ)}">
-  <div class="seg">${types.map(([k,n])=>`<button data-lseg="${k}" class="${libSeg===k?'on':''}">${n}</button>`).join('')}</div>
+  app.innerHTML = `<input class="search top-search" id="q" placeholder="Поиск: ${TITLES[tab].toLowerCase()}" value="${esc(libQ)}">
   <div class="chips"><button class="chip ${!libQuality?'on':''}" data-lq="">Все качества</button>${Object.entries(QUALITIES).map(([k,q])=>`<button class="chip ${libQuality===k?'on':''}" data-lq="${k}">${ico(k)}${q.title}</button>`).join('')}</div>
   <div id="list">${ids.length? ids.map(itemRow).join('') : '<div class="empty">Ничего не найдено</div>'}</div>`;
   const inp=$('#q'); inp.oninput=()=>{ libQ=inp.value; const pos=inp.selectionStart; renderLib(); const n=$('#q'); n.focus(); n.setSelectionRange(pos,pos); };
@@ -107,8 +105,8 @@ function renderMe(){
 
 function render(){
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on', b.dataset.tab===tab));
-  setBack(tab==='home' && !!view);
-  ({home:renderHome, lib:renderLib, me:renderMe})[tab]();
+  setBack(!!view);
+  (view ? renderHome : renderLib)();
 }
 function setBack(show){
   if(!tg||!tg.BackButton) return;
@@ -142,7 +140,7 @@ document.addEventListener('click', e=>{
   else if (d.lseg!==undefined){ libSeg=d.lseg; render(); }
   else if (d.lq!==undefined){ libQuality=d.lq; render(); }
   else if (d.problem){ view={type:'problem',id:d.problem}; render(); window.scrollTo(0,0); }
-  else if (d.quality){ tab='home'; view={type:'quality',id:d.quality}; render(); window.scrollTo(0,0); }
+  else if (d.quality){ view={type:'quality',id:d.quality}; render(); window.scrollTo(0,0); }
   else if (d.item){ openItem(d.item); }
   else if (d.step){ const [pid,i]=d.step.split(':'); const a=S.steps[pid]=S.steps[pid]||[]; toggle(a,+i); save(); render(); }
   else if (d.back!==undefined){ goBack(); }
