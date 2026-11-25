@@ -60,7 +60,7 @@ def app_btn(text, p=None):
 
 
 def kb_main():
-    return {"inline_keyboard": [[app_btn("Open")]]}
+    return {"inline_keyboard": [[app_btn("Открыть")]]}
 
 
 PROBLEMS = [("fight", "Страх драться"), ("people", "Боюсь людей"), ("women", "Страх женщин"),
