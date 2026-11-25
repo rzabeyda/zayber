@@ -65,7 +65,7 @@ function ordered(ids){
   return [...ids].sort(cmp);
 }
 function sortBtns(){
-  const arrow = sortDir===1 ? '↑' : '↓';
+  const arrow = sortDir===1 ? '<svg viewBox="0 0 12 12"><path d="M2.5 7.5L6 4l3.5 3.5"/></svg>' : '<svg viewBox="0 0 12 12"><path d="M2.5 4.5L6 8l3.5-3.5"/></svg>';
   const b = (k,txt)=>`<button class="sq ${sortKey===k?'on':''}" data-sort="${k}">${txt}${sortKey===k?`<i>${arrow}</i>`:''}</button>`;
   return `<div class="sorts">${b('title','АБВ')}${b('year','Год')}</div>`;
 }

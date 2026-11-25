@@ -149,3 +149,5 @@ body.lock{overflow:hidden}
 .sq{font-size:12.5px;letter-spacing:-.2px}
 .sq.on{background:#fff;color:#000;border-color:#fff}
 .sq i{position:absolute;right:3px;bottom:0;font-style:normal;font-size:11px;font-weight:900}
+.sq i{right:-6px;top:-6px;bottom:auto;width:17px;height:17px;border-radius:50%;background:#000;border:1.5px solid #fff;display:grid;place-items:center}
+.sq i svg{width:10px;height:10px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
