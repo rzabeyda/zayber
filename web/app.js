@@ -18,6 +18,7 @@ const HEART = '<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-
 const CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
 // ---------- состояние ----------
+let sortKey = localStorage.getItem('open_sk') || '', sortDir = +(localStorage.getItem('open_sd') || 1);
 let tab = 'film', cat = '', profile = {}, editing = false, done = [], fav = [], sheetId = null;
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)||d); } catch(e){ return JSON.parse(d); } };
 profile = load('open_profile', '{}'); done = load('open_done', '[]'); fav = load('open_fav', '[]');
@@ -56,10 +57,22 @@ function itemRow(id){
 }
 
 // ---------- вкладки каталога ----------
+function ordered(ids){
+  if (!sortKey) return ids;
+  const cmp = sortKey==='year'
+    ? (x,y)=>{ const a_=ITEMS[x].year, b_=ITEMS[y].year; if(!a_&&!b_) return 0; if(!a_) return 1; if(!b_) return -1; return (a_-b_)*sortDir; }
+    : (x,y)=>ITEMS[x].title.localeCompare(ITEMS[y].title,'ru')*sortDir;
+  return [...ids].sort(cmp);
+}
+function sortBtns(){
+  const arrow = sortDir===1 ? '↑' : '↓';
+  const b = (k,txt)=>`<button class="sq ${sortKey===k?'on':''}" data-sort="${k}">${txt}${sortKey===k?`<i>${arrow}</i>`:''}</button>`;
+  return `<div class="sorts">${b('title','А')}${b('year','Год')}</div>`;
+}
 function renderList(){
   const bar = !SHOW_LABELS ? '' : `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
-  const ids = Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)));
-  app.innerHTML = `<div class="toplabel"><span>Повышаем Ранг</span></div>${bar}${ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Пока пусто</div>'}`;
+  const ids = ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat))));
+  app.innerHTML = `<div class="tophead"><div class="toptitle">Повышаем ранг</div>${sortBtns()}</div>${bar}${ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Пока пусто</div>'}`;
   fitTitles(app);
 }
 
@@ -153,7 +166,7 @@ function render(){
 const refresh = () => { (tab==='me' ? renderMe : renderList)(); if (sheetId) { const y = sheet.scrollTop; openSheet(sheetId); sheet.scrollTop = y; } };
 
 document.addEventListener('click', e=>{
-  const t = e.target.closest('[data-tab],[data-item],[data-edit],[data-done],[data-fav],[data-cat],[data-read],[data-close],[data-link],[data-noop]');
+  const t = e.target.closest('[data-tab],[data-item],[data-edit],[data-done],[data-fav],[data-cat],[data-sort],[data-read],[data-close],[data-link],[data-noop]');
   if (!t) return;
   if (t.hasAttribute('data-noop')) return;
   buzz();
@@ -161,6 +174,11 @@ document.addEventListener('click', e=>{
   if (d.close){ closeSheet(); }
   else if (d.link){ tg && tg.openLink ? tg.openLink(d.link) : window.open(d.link,'_blank'); }
   else if (d.tab){ if (sheetId) closeSheet(); tab=d.tab; editing=false; render(); window.scrollTo(0,0); }
+  else if (d.sort){
+    if (sortKey===d.sort) sortDir = -sortDir; else { sortKey = d.sort; sortDir = 1; }
+    localStorage.setItem('open_sk', sortKey); localStorage.setItem('open_sd', sortDir);
+    renderList();
+  }
   else if (d.cat){ cat = (cat===d.cat) ? '' : d.cat; renderList(); }
   else if (d.done){
     const k = dkey(d.done), i = done.indexOf(k);

@@ -142,3 +142,10 @@ body.lock{overflow:hidden}
 .card .cv,.sh-cover .cv{object-position:50% 14%}
 .toplabel{display:flex;justify-content:center;padding:22px 0 18px}
 .toplabel span{padding:11px 24px;border-radius:18px;border:1.5px solid rgba(255,255,255,.55);color:#fff;font-weight:900;font-size:19px;letter-spacing:.3px;background:rgba(255,255,255,.04);box-shadow:0 0 8px rgba(255,255,255,.14),inset 0 0 8px rgba(255,255,255,.05)}
+.tophead{display:flex;align-items:center;justify-content:space-between;padding:20px 0 16px}
+.toptitle{font-size:22px;font-weight:900;letter-spacing:-.2px}
+.sorts{display:flex;gap:8px}
+.sq{position:relative;width:42px;height:42px;border-radius:12px;border:1.5px solid rgba(255,255,255,.4);background:#0b0b0b;color:#e8e8e8;font-weight:900;font-size:17px;display:grid;place-items:center;box-shadow:0 0 8px rgba(255,255,255,.1)}
+.sq:last-child{font-size:12.5px}
+.sq.on{background:#fff;color:#000;border-color:#fff}
+.sq i{position:absolute;right:3px;bottom:0;font-style:normal;font-size:11px;font-weight:900}
