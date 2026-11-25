@@ -141,4 +141,4 @@ body.lock{overflow:hidden}
 #app{overflow-clip-margin:30px}
 .card .cv,.sh-cover .cv{object-position:50% 14%}
 .toplabel{display:flex;justify-content:center;padding:22px 0 18px}
-.toplabel span{padding:11px 24px;border-radius:18px;border:1.5px solid #ba68c8;color:#fff;font-weight:900;font-size:19px;letter-spacing:.3px;background:rgba(186,104,200,.12);box-shadow:0 0 14px rgba(186,104,200,.55),0 0 28px rgba(186,104,200,.22),inset 0 0 12px rgba(186,104,200,.2)}
+.toplabel span{padding:11px 24px;border-radius:18px;border:1.5px solid rgba(255,255,255,.55);color:#fff;font-weight:900;font-size:19px;letter-spacing:.3px;background:rgba(255,255,255,.04);box-shadow:0 0 8px rgba(255,255,255,.14),inset 0 0 8px rgba(255,255,255,.05)}
