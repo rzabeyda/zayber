@@ -38,7 +38,8 @@ const buzz = () => { try{ tg && tg.HapticFeedback.impactOccurred('light'); }catc
 // ---------- карточка ----------
 function itemRow(id){
   const it = ITEMS[id];
-  const sub = [it.author, it.year].filter(Boolean).join(' · ');
+  const yr = it.year ? (it.year < 0 ? (-it.year)+' до н. э.' : it.year) : '';
+  const sub = [it.author, yr].filter(Boolean).join(' · ');
   const main = it.tags.find(t=>topics.includes(t)) || it.tags[0];
   const all = it.tags.map(t=>pill(t)).join('');
   const isDone = done.includes(dkey(id));
@@ -59,6 +60,19 @@ function sortBar(){
   const yr = sortKey==='year', nm = sortKey==='title';
   return `<div class="sortbar"><button class="sbtn ${yr?'on':''}" data-sort="year">Год${yr?' '+arrow:''}</button><button class="sbtn ${nm?'on':''}" data-sort="title">${nm&&sortDir===-1?'Я → А':'А → Я'}</button></div>`;
 }
+// Подгоняем размер шрифта, чтобы название всегда целиком влезало в блок
+function fitTitles(root){
+  (root||document).querySelectorAll('.row .ttl b').forEach(b=>{
+    const row = b.closest('.row');
+    if (row.classList.contains('open')) { b.style.fontSize=''; b.style.lineHeight=''; return; }
+    let size = 16.5;
+    b.style.fontSize = size+'px'; b.style.lineHeight = '1.2';
+    const max = 42;
+    while (b.scrollHeight > max + 1 && size > 9) { size -= 0.5; b.style.fontSize = size+'px'; }
+  });
+}
+window.addEventListener('resize', ()=>fitTitles());
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(()=>fitTitles());
 function renderList(){
   const all = Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab);
   let html;
@@ -74,6 +88,7 @@ function renderList(){
     }
   }
   app.innerHTML = `<div class="top-gap"></div>${sortBar()}${html}`;
+  fitTitles(app);
 }
 
 // ---------- профиль ----------
@@ -99,6 +114,7 @@ function renderMe(){
   ${other.length ? `<h2>Добавить ещё</h2><div class="chips">${other.map(p=>chip(p,false)).join('')}</div>` : ''}
   ${doneItems.length ? `<h2>Просмотрено и прочитано <span class="hint">${doneItems.length}</span></h2>${doneItems.map(itemRow).join('')}` : ''}
   ${mine.length ? `<h2>Что делать</h2>` + mine.map(p=>`<div class="sec">${esc(p.title)}</div>${p.steps.map((s,i)=>`<div class="step"><i>${i+1}</i><span>${esc(s)}</span></div>`).join('')}`).join('') : ''}`;
+  fitTitles(app);
 }
 
 function bindEdit(){
@@ -184,7 +200,7 @@ document.addEventListener('click', e=>{
     if (tab==='me') renderMe();
   }
   else if (t.dataset.edit){ editing = true; renderMe(); bindEdit(); }
-  else if (t.dataset.item){ t.classList.toggle('open'); }
+  else if (t.dataset.item){ t.classList.toggle('open'); fitTitles(t); }
   else if (t.dataset.topic){
     const id=t.dataset.topic;
     setTopics(topics.includes(id) ? topics.filter(x=>x!==id) : [...topics, id]);

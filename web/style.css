@@ -77,3 +77,5 @@ h2{margin:24px 0 10px;font-size:19px;font-weight:800}
 .sortbar{display:flex;gap:8px;margin-bottom:14px}
 .sbtn{padding:9px 16px;border-radius:14px;border:1px solid var(--line);background:#0b0b0b;color:#bdbdbd;font-weight:800;font-size:14px}
 .sbtn.on{background:#fff;color:#000;border-color:#fff}
+.row .ttl b{display:block!important;-webkit-line-clamp:unset!important;max-height:42px;overflow:hidden;white-space:normal!important;line-height:1.2}
+.row.open .ttl b{max-height:none;overflow:visible}
