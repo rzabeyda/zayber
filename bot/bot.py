@@ -3,7 +3,8 @@ import os, time, sqlite3, requests
 TOKEN = os.environ["BOT_TOKEN"]
 URL = os.environ.get("WEBAPP_URL", "https://zayber.skffmassage.com/")
 API = f"https://api.telegram.org/bot{TOKEN}/"
-DB_PATH = os.environ.get("DB_PATH", "/opt/zayber-bot/users.db")
+ADMIN_ID = int(os.environ.get("ADMIN_ID", "7308147004"))
+DB_PATH =os.environ.get("DB_PATH", "/opt/zayber-bot/users.db")
 db = sqlite3.connect(DB_PATH, check_same_thread=False)
 db.execute("""CREATE TABLE IF NOT EXISTS users(
   tg_id INTEGER PRIMARY KEY, username TEXT, tg_name TEXT, name TEXT, age INTEGER, gender TEXT,
@@ -19,6 +20,8 @@ def get_user(m_from):
                    (uid, m_from.get("username"), m_from.get("first_name")))
         db.commit()
         row = ("name",)
+        uname = f"@{m_from['username']}" if m_from.get("username") else f"{m_from.get('first_name', '')} (без username)"
+        call("sendMessage", chat_id=ADMIN_ID, text=f"🆕 Новый юзер {uname}\nID: {uid}")
     db.execute("UPDATE users SET last_seen=CURRENT_TIMESTAMP, username=? WHERE tg_id=?", (m_from.get("username"), uid))
     db.commit()
     return row[0]
@@ -109,7 +112,8 @@ def handle_cb(cb):
     call("answerCallbackQuery", callback_query_id=cb["id"])
     if cb.get("data", "").startswith("g:") and get_user(cb["from"]) == "gender":
         set_field(uid, gender=cb["data"][2:], state="done")
-        name = db.execute("SELECT name FROM users WHERE tg_id=?", (uid,)).fetchone()[0]
+        name, age, gender, uname = db.execute("SELECT name,age,gender,username FROM users WHERE tg_id=?", (uid,)).fetchone()
+        call("sendMessage", chat_id=ADMIN_ID, text=f"✅ Анкета заполнена: {name}, {age}, {'муж' if gender == 'm' else 'жен'}" + (f" — @{uname}" if uname else "") + f"\nID: {uid}")
         finish(chat, name)
 
 
