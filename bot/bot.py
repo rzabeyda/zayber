@@ -49,12 +49,6 @@ def set_field(uid, **kw):
         db.commit()
 
 
-def notify_done(uid):
-    name, age, city, uname = db.execute("SELECT name,age,city,username FROM users WHERE tg_id=?", (uid,)).fetchone()
-    call("sendMessage", chat_id=ADMIN_ID,
-         text=f"Анкета заполнена: {name}, {age}, {city}" + (f" — @{uname}" if uname else "") + f"\nID: {uid}")
-
-
 def app_btn(text, p=None):
     return {"text": text, "web_app": {"url": URL + (f"?p={p}" if p else "")}}
 
@@ -148,8 +142,6 @@ class Api(BaseHTTPRequestHandler):
             if not name or not city or not isinstance(age, int) or not 10 <= age <= 99:
                 return self.reply({"error": "invalid"}, 400)
             set_field(user["id"], name=name, age=age, city=city, state="done")
-            if state != "done":
-                notify_done(user["id"])
             return self.reply({"registered": True})
         self.reply({"error": "nf"}, 404)
 
