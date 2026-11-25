@@ -151,3 +151,9 @@ body.lock{overflow:hidden}
 .sq i{position:absolute;right:3px;bottom:0;font-style:normal;font-size:11px;font-weight:900}
 .sq i{right:-6px;top:-6px;bottom:auto;width:17px;height:17px;border-radius:50%;background:#000;border:1.5px solid #fff;display:grid;place-items:center}
 .sq i svg{width:10px;height:10px;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+.sh-count{position:absolute;left:14px;top:calc(18px + env(safe-area-inset-top));padding:6px 11px;border-radius:12px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);font-size:13px;font-weight:800;color:#fff}
+@keyframes slideL{from{transform:translateX(36px);opacity:.2}to{transform:none;opacity:1}}
+@keyframes slideR{from{transform:translateX(-36px);opacity:.2}to{transform:none;opacity:1}}
+#sheet.slide-l{animation:slideL .22s ease}
+#sheet.slide-r{animation:slideR .22s ease}

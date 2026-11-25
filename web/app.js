@@ -19,7 +19,7 @@ const CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
 
 // ---------- состояние ----------
 let sortKey = localStorage.getItem('open_sk') || '', sortDir = +(localStorage.getItem('open_sd') || 1);
-let tab = 'film', cat = '', profile = {}, editing = false, done = [], fav = [], sheetId = null;
+let tab = 'film', cat = '', profile = {}, editing = false, done = [], fav = [], sheetId = null, curList = [];
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)||d); } catch(e){ return JSON.parse(d); } };
 profile = load('open_profile', '{}'); done = load('open_done', '[]'); fav = load('open_fav', '[]');
 function api(path, body){
@@ -72,6 +72,7 @@ function sortBtns(){
 function renderList(){
   const bar = !SHOW_LABELS ? '' : `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
   const ids = ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat))));
+  curList = ids;
   app.innerHTML = `<div class="tophead"><div class="toptitle">Повышаем ранг</div>${sortBtns()}</div>${bar}${ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Пока пусто</div>'}`;
   fitTitles(app);
 }
@@ -81,7 +82,7 @@ function openSheet(id){
   sheetId = id;
   const it = ITEMS[id];
   const isDone = done.includes(dkey(id)), isFav = fav.includes(dkey(id));
-  sheet.innerHTML = `<div class="sh-cover">${coverHtml(it, true)}<div class="sh-fade"></div><button class="sh-x" data-close="1">${'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>'}</button></div>
+  sheet.innerHTML = `<div class="sh-cover">${coverHtml(it, true)}<div class="sh-fade"></div>${curList.length>1&&curList.indexOf(id)>=0?`<div class="sh-count">${curList.indexOf(id)+1} / ${curList.length}</div>`:''}<button class="sh-x" data-close="1">${'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>'}</button></div>
   <div class="sh-body">
     <h1 class="sh-t">${esc(it.title)}</h1>
     <div class="hint">${esc(subOf(it))}</div>
@@ -95,6 +96,31 @@ function openSheet(id){
   sheet.classList.add('open'); sheet.scrollTop = 0; document.body.classList.add('lock');
   if (tg && tg.BackButton){ tg.BackButton.onClick(closeSheet); tg.BackButton.show(); }
 }
+function navSheet(dir){
+  if (!sheetId) return;
+  const i = curList.indexOf(sheetId), j = i + dir;
+  if (i < 0 || j < 0 || j >= curList.length) return;
+  openSheet(curList[j]);
+  sheet.classList.remove('slide-l', 'slide-r');
+  void sheet.offsetWidth;
+  sheet.classList.add(dir > 0 ? 'slide-l' : 'slide-r');
+}
+let tx = 0, ty = 0, tt = 0, swipeOk = false;
+sheet.addEventListener('touchstart', e=>{
+  swipeOk = e.touches.length === 1 && !e.target.closest('input,textarea');
+  if (swipeOk){ tx = e.touches[0].clientX; ty = e.touches[0].clientY; tt = Date.now(); }
+}, {passive:true});
+sheet.addEventListener('touchend', e=>{
+  if (!swipeOk) return;
+  const t = e.changedTouches[0], dx = t.clientX - tx, dy = t.clientY - ty;
+  if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6 && Date.now() - tt < 800){ buzz(); navSheet(dx < 0 ? 1 : -1); }
+}, {passive:true});
+document.addEventListener('keydown', e=>{
+  if (!sheetId) return;
+  if (e.key === 'ArrowRight') navSheet(1);
+  else if (e.key === 'ArrowLeft') navSheet(-1);
+  else if (e.key === 'Escape') closeSheet();
+});
 function closeSheet(){
   sheet.classList.remove('open'); sheet.innerHTML=''; sheetId = null; document.body.classList.remove('lock');
   if (tg && tg.BackButton){ tg.BackButton.offClick(closeSheet); tg.BackButton.hide(); }
@@ -114,6 +140,7 @@ function renderMe(){
     : `<button class="profile" data-edit="1"><div class="avatar" ${av}>${u.photo_url?'':esc(name[0]||'?')}</div><div style="text-align:left"><b>${esc(name)}</b><div class="hint">${esc(meta || (u.username?'@'+u.username:''))}</div></div></button>`;
   const keyToId = Object.fromEntries(Object.keys(ITEMS).map(id=>[dkey(id),id]));
   const favItems = fav.map(k=>keyToId[k]).filter(Boolean);
+  curList = favItems;
   app.innerHTML = `${head}
   <h2>Избранное</h2>
   ${favItems.length ? `<div class="grid">${favItems.map(itemRow).join('')}</div>` : '<div class="hint">Пока ничего нет</div>'}`;
