@@ -55,9 +55,12 @@ function renderList(){
     const score = id => ITEMS[id].tags.filter(t=>topics.includes(t)).length;
     const mine = all.filter(id=>score(id)>0).sort((a,b)=>score(b)-score(a) || byMine(a,b));
     const rest = all.filter(id=>score(id)===0).sort(byMine);
-    html = (mine.length ? `<div class="sec">Подобрано для тебя</div>${mine.map(itemRow).join('')}` : '') +
-           (rest.length ? `<div class="sec">${mine.length?'Остальное':'Все'}</div>${rest.map(itemRow).join('')}` : '') ||
-           '<div class="empty">Пока пусто</div>';
+    if (topics.length){
+      html = mine.length ? `<div class="sec">Подобрано для тебя</div>${mine.map(itemRow).join('')}`
+                         : '<div class="empty">Пока нет подборки по твоим темам.<br>Добавь ещё темы в профиле.</div>';
+    } else {
+      html = rest.length ? rest.map(itemRow).join('') : '<div class="empty">Пока пусто</div>';
+    }
   }
   app.innerHTML = `<div class="top-gap"></div>${html}`;
 }
