@@ -16,6 +16,7 @@ if "city" not in [r[1] for r in db.execute("PRAGMA table_info(users)")]:
     db.execute("ALTER TABLE users ADD COLUMN city TEXT")
 db.commit()
 lock = threading.RLock()
+PROMPTED = {}
 
 
 def call(method, **kw):
@@ -99,6 +100,9 @@ def handle(m):
     state = get_user(m["from"])
     if state == "name":
         if not text or text.startswith("/"):
+            if time.time() - PROMPTED.get(uid, 0) < 300:
+                return
+            PROMPTED[uid] = time.time()
             send(chat, "Привет! Я <b>Open</b> — помогу разобраться, что смотреть и читать, когда что-то тревожит.\n\nДавай познакомимся. <b>Как тебя зовут?</b>")
         else:
             set_field(uid, name=text[:40], state="age")
