@@ -1,41 +1,21 @@
-import os, time, sqlite3, requests
+import os, time, json, hmac, hashlib, threading, sqlite3, requests
+from urllib.parse import parse_qsl
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 TOKEN = os.environ["BOT_TOKEN"]
 URL = os.environ.get("WEBAPP_URL", "https://zayber.skffmassage.com/")
-API = f"https://api.telegram.org/bot{TOKEN}/"
 ADMIN_ID = int(os.environ.get("ADMIN_ID", "7308147004"))
-DB_PATH =os.environ.get("DB_PATH", "/opt/zayber-bot/users.db")
+DB_PATH = os.environ.get("DB_PATH", "/opt/zayber-bot/users.db")
+API = f"https://api.telegram.org/bot{TOKEN}/"
+
 db = sqlite3.connect(DB_PATH, check_same_thread=False)
 db.execute("""CREATE TABLE IF NOT EXISTS users(
   tg_id INTEGER PRIMARY KEY, username TEXT, tg_name TEXT, name TEXT, age INTEGER, gender TEXT,
   state TEXT DEFAULT 'name', created_at TEXT DEFAULT CURRENT_TIMESTAMP, last_seen TEXT)""")
+if "city" not in [r[1] for r in db.execute("PRAGMA table_info(users)")]:
+    db.execute("ALTER TABLE users ADD COLUMN city TEXT")
 db.commit()
-
-
-def get_user(m_from):
-    uid = m_from["id"]
-    row = db.execute("SELECT state FROM users WHERE tg_id=?", (uid,)).fetchone()
-    if not row:
-        db.execute("INSERT INTO users(tg_id,username,tg_name) VALUES(?,?,?)",
-                   (uid, m_from.get("username"), m_from.get("first_name")))
-        db.commit()
-        row = ("name",)
-        uname = f"@{m_from['username']}" if m_from.get("username") else f"{m_from.get('first_name', '')} (без username)"
-        call("sendMessage", chat_id=ADMIN_ID, text=f"🆕 Новый юзер {uname}\nID: {uid}")
-    db.execute("UPDATE users SET last_seen=CURRENT_TIMESTAMP, username=? WHERE tg_id=?", (m_from.get("username"), uid))
-    db.commit()
-    return row[0]
-
-
-def set_field(uid, **kw):
-    cols = ",".join(f"{k}=?" for k in kw)
-    db.execute(f"UPDATE users SET {cols} WHERE tg_id=?", (*kw.values(), uid))
-    db.commit()
-
-PROBLEMS = [("fight", "🥊 Страх драться"), ("people", "🫥 Боюсь людей"), ("women", "💔 Страх женщин"),
-            ("selfesteem", "🪞 Неуверенность"), ("money", "💸 Нет денег"), ("lazy", "🛋 Лень"),
-            ("lonely", "🌑 Одиночество"), ("anxiety", "🌪 Тревога"), ("hopeless", "⛓ Тупик"),
-            ("manifest", "✨ Манифестация")]
+lock = threading.RLock()
 
 
 def call(method, **kw):
@@ -46,12 +26,47 @@ def call(method, **kw):
         return {}
 
 
+def get_user(u):
+    """Возвращает state пользователя; создаёт запись и уведомляет админа о новом."""
+    uid = u["id"]
+    with lock:
+        row = db.execute("SELECT state FROM users WHERE tg_id=?", (uid,)).fetchone()
+        if not row:
+            db.execute("INSERT INTO users(tg_id,username,tg_name) VALUES(?,?,?)",
+                       (uid, u.get("username"), u.get("first_name")))
+            row = ("name",)
+            uname = f"@{u['username']}" if u.get("username") else f"{u.get('first_name', '')} (без username)"
+            call("sendMessage", chat_id=ADMIN_ID, text=f"Новый юзер {uname}\nID: {uid}")
+        db.execute("UPDATE users SET last_seen=CURRENT_TIMESTAMP, username=? WHERE tg_id=?", (u.get("username"), uid))
+        db.commit()
+        return row[0]
+
+
+def set_field(uid, **kw):
+    with lock:
+        cols = ",".join(f"{k}=?" for k in kw)
+        db.execute(f"UPDATE users SET {cols} WHERE tg_id=?", (*kw.values(), uid))
+        db.commit()
+
+
+def notify_done(uid):
+    name, age, city, uname = db.execute("SELECT name,age,city,username FROM users WHERE tg_id=?", (uid,)).fetchone()
+    call("sendMessage", chat_id=ADMIN_ID,
+         text=f"Анкета заполнена: {name}, {age}, {city}" + (f" — @{uname}" if uname else "") + f"\nID: {uid}")
+
+
 def app_btn(text, p=None):
     return {"text": text, "web_app": {"url": URL + (f"?p={p}" if p else "")}}
 
 
 def kb_main():
-    return {"inline_keyboard": [[app_btn("🧭 Открыть «Путь»")]]}
+    return {"inline_keyboard": [[app_btn("Открыть Open")]]}
+
+
+PROBLEMS = [("fight", "Страх драться"), ("people", "Боюсь людей"), ("women", "Страх женщин"),
+            ("selfesteem", "Неуверенность"), ("money", "Нет денег"), ("lazy", "Лень"),
+            ("lonely", "Одиночество"), ("anxiety", "Тревога"), ("hopeless", "Тупик"),
+            ("manifest", "Манифестация")]
 
 
 def kb_problems():
@@ -63,78 +78,127 @@ def kb_problems():
             row = []
     if row:
         rows.append(row)
-    rows.append([app_btn("📚 Открыть всё приложение")])
+    rows.append([app_btn("Открыть всё приложение")])
     return {"inline_keyboard": rows}
 
 
-WELCOME = ("<b>Путь</b> — навигатор по жизни.\n\n"
+WELCOME = ("<b>Open</b> — навигатор по жизни.\n\n"
            "Выбери, что тебя тревожит, — и я подскажу <b>конкретные шаги</b>, "
            "а также какие <b>фильмы, сериалы и книги</b> посмотреть, чтобы прокачать нужное качество: "
-           "смелость, дисциплину, спокойствие, уверенность.\n\nНажми кнопку ниже 👇")
+           "смелость, дисциплину, спокойствие, уверенность.\n\nНажми кнопку ниже")
 
 
-GENDER_KB = {"inline_keyboard": [[{"text": "👨 Мужской", "callback_data": "g:m"}, {"text": "👩 Женский", "callback_data": "g:f"}]]}
-
-
-def finish(chat, name):
-    call("sendMessage", chat_id=chat, text=f"Готово, {name}! 🔥\n\n" + WELCOME, parse_mode="HTML", reply_markup=kb_main())
+def send(chat, text, **kw):
+    call("sendMessage", chat_id=chat, text=text, parse_mode="HTML", **kw)
 
 
 def handle(m):
     chat = m["chat"]["id"]
     text = (m.get("text") or "").strip()
+    uid = m["from"]["id"]
     state = get_user(m["from"])
     if state == "name":
-        if text.startswith("/start") or not text or text.startswith("/"):
-            call("sendMessage", chat_id=chat, text="Привет! 👋 Я «Путь» — помогу разобраться, что смотреть и читать, когда что-то тревожит.\n\nДавай познакомимся. <b>Как тебя зовут?</b>", parse_mode="HTML")
+        if not text or text.startswith("/"):
+            send(chat, "Привет! Я <b>Open</b> — помогу разобраться, что смотреть и читать, когда что-то тревожит.\n\nДавай познакомимся. <b>Как тебя зовут?</b>")
         else:
-            set_field(m["from"]["id"], name=text[:40], state="age")
-            call("sendMessage", chat_id=chat, text=f"Приятно, {text[:40]}! Сколько тебе <b>лет</b>?", parse_mode="HTML")
+            set_field(uid, name=text[:40], state="age")
+            send(chat, f"Приятно, {text[:40]}! Сколько тебе <b>лет</b>?")
         return
     if state == "age":
         if text.isdigit() and 10 <= int(text) <= 99:
-            set_field(m["from"]["id"], age=int(text), state="gender")
-            call("sendMessage", chat_id=chat, text="Твой <b>пол</b>?", parse_mode="HTML", reply_markup=GENDER_KB)
+            set_field(uid, age=int(text), state="city")
+            send(chat, "Из какого ты <b>города</b>?")
         else:
-            call("sendMessage", chat_id=chat, text="Напиши возраст числом, например 27")
+            send(chat, "Напиши возраст числом, например 27")
         return
-    if state == "gender":
-        call("sendMessage", chat_id=chat, text="Выбери пол кнопкой 👇", reply_markup=GENDER_KB)
+    if state == "city":
+        if not text or text.startswith("/"):
+            send(chat, "Напиши название города")
+        else:
+            set_field(uid, city=text[:60], state="done")
+            notify_done(uid)
+            name = db.execute("SELECT name FROM users WHERE tg_id=?", (uid,)).fetchone()[0]
+            send(chat, f"Готово, {name}!\n\n" + WELCOME, reply_markup=kb_main())
         return
     if text.startswith(("/start", "/menu", "/help")):
-        call("sendMessage", chat_id=chat, text=WELCOME, parse_mode="HTML", reply_markup=kb_main())
+        send(chat, WELCOME, reply_markup=kb_main())
     else:
-        call("sendMessage", chat_id=chat, text="Что тебя сейчас беспокоит? Выбери тему 👇", reply_markup=kb_problems())
+        send(chat, "Что тебя сейчас беспокоит? Выбери тему", reply_markup=kb_problems())
 
 
-def handle_cb(cb):
-    uid, chat = cb["from"]["id"], cb["message"]["chat"]["id"]
-    call("answerCallbackQuery", callback_query_id=cb["id"])
-    if cb.get("data", "").startswith("g:") and get_user(cb["from"]) == "gender":
-        set_field(uid, gender=cb["data"][2:], state="done")
-        name, age, gender, uname = db.execute("SELECT name,age,gender,username FROM users WHERE tg_id=?", (uid,)).fetchone()
-        call("sendMessage", chat_id=ADMIN_ID, text=f"✅ Анкета заполнена: {name}, {age}, {'муж' if gender == 'm' else 'жен'}" + (f" — @{uname}" if uname else "") + f"\nID: {uid}")
-        finish(chat, name)
+# ---------- API для мини-приложения ----------
+def check_init_data(init_data):
+    try:
+        d = dict(parse_qsl(init_data, keep_blank_values=True))
+        h = d.pop("hash")
+        s = "\n".join(f"{k}={v}" for k, v in sorted(d.items()))
+        key = hmac.new(b"WebAppData", TOKEN.encode(), hashlib.sha256).digest()
+        if not hmac.compare_digest(hmac.new(key, s.encode(), hashlib.sha256).hexdigest(), h):
+            return None
+        return json.loads(d["user"])
+    except Exception:
+        return None
+
+
+class Api(BaseHTTPRequestHandler):
+    def log_message(self, *a):
+        pass
+
+    def reply(self, obj, code=200):
+        body = json.dumps(obj).encode()
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def do_POST(self):
+        try:
+            data = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
+        except Exception:
+            return self.reply({"error": "bad"}, 400)
+        user = check_init_data(data.get("initData", ""))
+        if not user:
+            return self.reply({"error": "auth"}, 403)
+        state = get_user(user)
+        if self.path.endswith("/me"):
+            return self.reply({"registered": state == "done"})
+        if self.path.endswith("/register"):
+            name = str(data.get("name", "")).strip()[:40]
+            city = str(data.get("city", "")).strip()[:60]
+            age = data.get("age")
+            if not name or not city or not isinstance(age, int) or not 10 <= age <= 99:
+                return self.reply({"error": "invalid"}, 400)
+            set_field(user["id"], name=name, age=age, city=city, state="done")
+            if state != "done":
+                notify_done(user["id"])
+            return self.reply({"registered": True})
+        self.reply({"error": "nf"}, 404)
+
+
+def run_api():
+    ThreadingHTTPServer(("127.0.0.1", 8061), Api).serve_forever()
 
 
 def setup():
-    call("setChatMenuButton", menu_button={"type": "web_app", "text": "Путь", "web_app": {"url": URL}})
-    call("setMyCommands", commands=[{"command": "start", "description": "Открыть «Путь»"},
+    call("setChatMenuButton", menu_button={"type": "web_app", "text": "Open", "web_app": {"url": URL}})
+    call("setMyCommands", commands=[{"command": "start", "description": "Открыть Open"},
                                     {"command": "problems", "description": "Выбрать тему, что тревожит"}])
     call("setMyDescription", description="Навигатор по жизни: выбери, что тревожит — получи шаги, фильмы, сериалы и книги, которые прокачают нужные качества.")
 
 
 def main():
     setup()
+    threading.Thread(target=run_api, daemon=True).start()
     offset = 0
     print("bot started", flush=True)
     while True:
-        r = call("getUpdates", offset=offset, timeout=30, allowed_updates=["message", "callback_query"])
+        r = call("getUpdates", offset=offset, timeout=30, allowed_updates=["message"])
         for u in r.get("result", []):
             offset = u["update_id"] + 1
-            if "message" in u or "callback_query" in u:
+            if "message" in u:
                 try:
-                    handle(u["message"]) if "message" in u else handle_cb(u["callback_query"])
+                    handle(u["message"])
                 except Exception as e:
                     print("handle err", e, flush=True)
         if not r.get("ok", True):

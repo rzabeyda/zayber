@@ -69,5 +69,14 @@ if DOMAIN not in run("ls /etc/letsencrypt/live"):
 else:
     print("cert already present, skipping nginx overwrite")
 
+conf = f"/etc/nginx/sites-enabled/{DOMAIN}"
+with sftp.open(conf) as f:
+    cur = f.read().decode()
+if "location /api/" not in cur:
+    blk = ("    location /api/ {\n        proxy_pass http://127.0.0.1:8061;\n"
+           "        proxy_set_header Host $host;\n    }\n")
+    with sftp.open(conf, "w") as f:
+        f.write(cur.replace("    location / {", blk + "    location / {", 1))
+    run("nginx -t && systemctl reload nginx")
 run("systemctl daemon-reload && systemctl enable zayber_bot && systemctl restart zayber_bot")
 run("sleep 2; systemctl is-active zayber_bot; journalctl -u zayber_bot -n 5 --no-pager")
