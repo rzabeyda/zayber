@@ -98,8 +98,9 @@ function openSheet(id){
 }
 function navSheet(dir){
   if (!sheetId) return;
-  const i = curList.indexOf(sheetId), j = i + dir;
-  if (i < 0 || j < 0 || j >= curList.length) return;
+  const n = curList.length, i = curList.indexOf(sheetId);
+  if (i < 0 || n < 2) return;
+  const j = (i + dir + n) % n; // по кругу: с последнего на первый и обратно
   openSheet(curList[j]);
   sheet.classList.remove('slide-l', 'slide-r');
   void sheet.offsetWidth;
