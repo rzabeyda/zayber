@@ -15,6 +15,9 @@ db.execute("""CREATE TABLE IF NOT EXISTS users(
 _cols = [r[1] for r in db.execute("PRAGMA table_info(users)")]
 if "city" not in _cols:
     db.execute("ALTER TABLE users ADD COLUMN city TEXT")
+if "country" not in _cols:
+    db.execute("ALTER TABLE users ADD COLUMN country TEXT")
+    db.execute("UPDATE users SET country=city WHERE country IS NULL")
 if "topics" not in _cols:
     db.execute("ALTER TABLE users ADD COLUMN topics TEXT DEFAULT '[]'")
 db.commit()
@@ -109,8 +112,9 @@ class Api(BaseHTTPRequestHandler):
             return self.reply({"error": "auth"}, 403)
         state = get_user(user)
         if self.path.endswith("/me"):
-            row = db.execute("SELECT topics FROM users WHERE tg_id=?", (user["id"],)).fetchone()
-            return self.reply({"registered": state == "done", "topics": json.loads(row[0] or "[]")})
+            row = db.execute("SELECT topics,name,age,country FROM users WHERE tg_id=?", (user["id"],)).fetchone()
+            return self.reply({"registered": state == "done", "topics": json.loads(row[0] or "[]"),
+                               "name": row[1], "age": row[2], "country": row[3]})
         if self.path.endswith("/topics"):
             t = data.get("topics")
             if not isinstance(t, list) or len(t) > 30 or not all(isinstance(x, str) and len(x) <= 30 for x in t):
@@ -119,11 +123,11 @@ class Api(BaseHTTPRequestHandler):
             return self.reply({"ok": True})
         if self.path.endswith("/register"):
             name = str(data.get("name", "")).strip()[:40]
-            city = str(data.get("city", "")).strip()[:60]
+            country = str(data.get("country", "")).strip()[:60]
             age = data.get("age")
-            if not name or not city or not isinstance(age, int) or not 10 <= age <= 99:
+            if not name or not country or not isinstance(age, int) or not 10 <= age <= 99:
                 return self.reply({"error": "invalid"}, 400)
-            set_field(user["id"], name=name, age=age, city=city, state="done")
+            set_field(user["id"], name=name, age=age, country=country, state="done")
             return self.reply({"registered": True})
         self.reply({"error": "nf"}, 404)
 
