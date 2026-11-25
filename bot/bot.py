@@ -1,8 +1,33 @@
-import os, time, requests
+import os, time, sqlite3, requests
 
 TOKEN = os.environ["BOT_TOKEN"]
 URL = os.environ.get("WEBAPP_URL", "https://zayber.skffmassage.com/")
 API = f"https://api.telegram.org/bot{TOKEN}/"
+DB_PATH = os.environ.get("DB_PATH", "/opt/zayber-bot/users.db")
+db = sqlite3.connect(DB_PATH, check_same_thread=False)
+db.execute("""CREATE TABLE IF NOT EXISTS users(
+  tg_id INTEGER PRIMARY KEY, username TEXT, tg_name TEXT, name TEXT, age INTEGER, gender TEXT,
+  state TEXT DEFAULT 'name', created_at TEXT DEFAULT CURRENT_TIMESTAMP, last_seen TEXT)""")
+db.commit()
+
+
+def get_user(m_from):
+    uid = m_from["id"]
+    row = db.execute("SELECT state FROM users WHERE tg_id=?", (uid,)).fetchone()
+    if not row:
+        db.execute("INSERT INTO users(tg_id,username,tg_name) VALUES(?,?,?)",
+                   (uid, m_from.get("username"), m_from.get("first_name")))
+        db.commit()
+        row = ("name",)
+    db.execute("UPDATE users SET last_seen=CURRENT_TIMESTAMP, username=? WHERE tg_id=?", (m_from.get("username"), uid))
+    db.commit()
+    return row[0]
+
+
+def set_field(uid, **kw):
+    cols = ",".join(f"{k}=?" for k in kw)
+    db.execute(f"UPDATE users SET {cols} WHERE tg_id=?", (*kw.values(), uid))
+    db.commit()
 
 PROBLEMS = [("fight", "🥊 Страх драться"), ("people", "🫥 Боюсь людей"), ("women", "💔 Страх женщин"),
             ("selfesteem", "🪞 Неуверенность"), ("money", "💸 Нет денег"), ("lazy", "🛋 Лень"),
@@ -45,13 +70,51 @@ WELCOME = ("<b>Путь</b> — навигатор по жизни.\n\n"
            "смелость, дисциплину, спокойствие, уверенность.\n\nНажми кнопку ниже 👇")
 
 
+GENDER_KB = {"inline_keyboard": [[{"text": "👨 Мужской", "callback_data": "g:m"}, {"text": "👩 Женский", "callback_data": "g:f"}]]}
+
+
+def finish(chat, name):
+    call("sendMessage", chat_id=chat, text=f"Готово, {name}! 🔥
+
+" + WELCOME, parse_mode="HTML", reply_markup=kb_main())
+
+
 def handle(m):
     chat = m["chat"]["id"]
     text = (m.get("text") or "").strip()
+    state = get_user(m["from"])
+    if state == "name":
+        if text.startswith("/start") or not text or text.startswith("/"):
+            call("sendMessage", chat_id=chat, text="Привет! 👋 Я «Путь» — помогу разобраться, что смотреть и читать, когда что-то тревожит.
+
+Давай познакомимся. <b>Как тебя зовут?</b>", parse_mode="HTML")
+        else:
+            set_field(m["from"]["id"], name=text[:40], state="age")
+            call("sendMessage", chat_id=chat, text=f"Приятно, {text[:40]}! Сколько тебе <b>лет</b>?", parse_mode="HTML")
+        return
+    if state == "age":
+        if text.isdigit() and 10 <= int(text) <= 99:
+            set_field(m["from"]["id"], age=int(text), state="gender")
+            call("sendMessage", chat_id=chat, text="Твой <b>пол</b>?", parse_mode="HTML", reply_markup=GENDER_KB)
+        else:
+            call("sendMessage", chat_id=chat, text="Напиши возраст числом, например 27")
+        return
+    if state == "gender":
+        call("sendMessage", chat_id=chat, text="Выбери пол кнопкой 👇", reply_markup=GENDER_KB)
+        return
     if text.startswith(("/start", "/menu", "/help")):
         call("sendMessage", chat_id=chat, text=WELCOME, parse_mode="HTML", reply_markup=kb_main())
     else:
         call("sendMessage", chat_id=chat, text="Что тебя сейчас беспокоит? Выбери тему 👇", reply_markup=kb_problems())
+
+
+def handle_cb(cb):
+    uid, chat = cb["from"]["id"], cb["message"]["chat"]["id"]
+    call("answerCallbackQuery", callback_query_id=cb["id"])
+    if cb.get("data", "").startswith("g:") and get_user(cb["from"]) == "gender":
+        set_field(uid, gender=cb["data"][2:], state="done")
+        name = db.execute("SELECT name FROM users WHERE tg_id=?", (uid,)).fetchone()[0]
+        finish(chat, name)
 
 
 def setup():
@@ -66,12 +129,12 @@ def main():
     offset = 0
     print("bot started", flush=True)
     while True:
-        r = call("getUpdates", offset=offset, timeout=30, allowed_updates=["message"])
+        r = call("getUpdates", offset=offset, timeout=30, allowed_updates=["message", "callback_query"])
         for u in r.get("result", []):
             offset = u["update_id"] + 1
-            if "message" in u:
+            if "message" in u or "callback_query" in u:
                 try:
-                    handle(u["message"])
+                    handle(u["message"]) if "message" in u else handle_cb(u["callback_query"])
                 except Exception as e:
                     print("handle err", e, flush=True)
         if not r.get("ok", True):
