@@ -4,129 +4,56 @@ if (tg) { tg.ready(); tg.expand(); try{tg.setHeaderColor('#000000');tg.setBackgr
 const $ = s => document.querySelector(s);
 const app = $('#app'), navwrap = $('#navwrap');
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const TITLES = {film:'Фильмы', series:'Сериалы', book:'Книги'};
-const TOPIC = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
-const KEYS = {};
-PROBLEMS.forEach(p=>{ KEYS[p.id] = {p}; p.subs.forEach(s=>{ KEYS[p.id+'.'+s.id] = {p, s}; }); });
-const validKey = k => !!KEYS[k];
+const buzz = () => { try{ tg && tg.HapticFeedback.impactOccurred('light'); }catch(_){} };
 
-// Каталог -> ITEMS
+// ---------- данные ----------
+const CATS = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
+const catOf = t => CATS[String(t).split('.')[0]];
 const ITEMS = {};
-(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:x.tags.filter(validKey), mine:x.mine, k:x.k}; });
-const pill = (key, full) => {
-  const {p, s} = KEYS[key]; const c = (s && s.color) || p.color;
-  const name = full ? (s ? p.short + ' · ' + s.short : p.short) : (s ? s.short : p.short);
-  return `<span class="lab" style="color:rgb(${c});background:rgba(${c},.13);border-color:rgba(${c},.38)">${esc(name)}</span>`;
-};
-// подбор: тема выбрана целиком — подходит любой контент темы; если выбраны подтемы — только они
-function itemScore(it){
-  let sc = 0;
-  PROBLEMS.forEach(p=>{
-    if (!topics.includes(p.id)) return;
-    const subs = topics.filter(k=>k.startsWith(p.id+'.'));
-    const hit = subs.length ? it.tags.some(t=>subs.includes(t)) : it.tags.some(t=>t===p.id || t.startsWith(p.id+'.'));
-    if (hit) sc++;
-  });
-  return sc;
-}
-function mainTag(it){
-  const sel = it.tags.filter(t=>{ const p = t.split('.')[0]; return topics.includes(p) && (!topics.some(k=>k.startsWith(p+'.')) || topics.includes(t)); });
-  sel.sort((x,y)=>(y.includes('.')?1:0)-(x.includes('.')?1:0));
-  return sel[0] || it.tags[0];
-}
-function toggleTopic(key){
-  let t = [...topics];
-  if (key.includes('.')){
-    const p = key.split('.')[0];
-    if (t.includes(key)) t = t.filter(x=>x!==key); else { t.push(key); if (!t.includes(p)) t.push(p); }
-  } else {
-    if (t.includes(key)) t = t.filter(x=>x!==key && !x.startsWith(key+'.')); else t.push(key);
-  }
-  setTopics(t);
-}
-function topicBlock(){
-  return `<div class="chips">` + PROBLEMS.map(p=>{
-    const on = topics.includes(p.id);
-    return `<button class="chip ${on?'on':''}" data-topic="${p.id}">${esc(p.title)}</button>` +
-      (on && p.subs.length ? `<div class="subrow">${p.subs.map(s=>`<button class="chip sub ${topics.includes(p.id+'.'+s.id)?'on':''}" data-topic="${p.id}.${s.id}">${esc(s.title)}</button>`).join('')}</div>` : '');
-  }).join('') + `</div>`;
-}
-const byMine = (a,b) => (ITEMS[b].mine?1:0) - (ITEMS[a].mine?1:0);
-
-let tab = 'film', q = '', topics = [], profile = {}, editing = false, done = [];
-try { done = JSON.parse(localStorage.getItem('open_done')||'[]'); } catch(e){}
-let fav = [];
-try { fav = JSON.parse(localStorage.getItem('open_fav')||'[]'); } catch(e){}
-function saveFav(){ localStorage.setItem('open_fav', JSON.stringify(fav)); if (tg && tg.initData) api('fav', {fav}).catch(()=>{}); }
-let sortKey = localStorage.getItem('open_sk') || '', sortDir = +(localStorage.getItem('open_sd') || 1);
+(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, k:x.k}; });
 const dkey = id => ITEMS[id].t + ':' + ITEMS[id].title;
-function saveDone(){ localStorage.setItem('open_done', JSON.stringify(done)); if (tg && tg.initData) api('done', {done}).catch(()=>{}); }
-try { profile = JSON.parse(localStorage.getItem('open_profile')||'{}'); } catch(e){}
-try { topics = JSON.parse(localStorage.getItem('open_topics')||'[]').filter(validKey); } catch(e){}
+const pill = key => { const c = catOf(key); return `<span class="lab" style="color:rgb(${c.color});background:rgba(${c.color},.13);border-color:rgba(${c.color},.38)">${esc(c.title)}</span>`; };
 
+// ---------- состояние ----------
+let tab = 'film', cat = '', profile = {}, editing = false, done = [], fav = [];
+const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)||d); } catch(e){ return JSON.parse(d); } };
+profile = load('open_profile', '{}'); done = load('open_done', '[]'); fav = load('open_fav', '[]');
 function api(path, body){
   return fetch('/api/'+path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(Object.assign({initData: tg && tg.initData || ''}, body||{}))});
 }
-function setTopics(arr){
-  topics = arr;
-  localStorage.setItem('open_topics', JSON.stringify(topics));
-  if (tg && tg.initData) api('topics', {topics}).catch(()=>{});
-}
-const buzz = () => { try{ tg && tg.HapticFeedback.impactOccurred('light'); }catch(_){} };
+function saveDone(){ localStorage.setItem('open_done', JSON.stringify(done)); if (tg && tg.initData) api('done', {done}).catch(()=>{}); }
+function saveFav(){ localStorage.setItem('open_fav', JSON.stringify(fav)); if (tg && tg.initData) api('fav', {fav}).catch(()=>{}); }
 
 // ---------- карточка ----------
-function itemRow(id){
-  const it = ITEMS[id];
-  const yr = it.year ? (it.year < 0 ? (-it.year)+' до н. э.' : it.year) : '';
-  const sub = [it.author, yr].filter(Boolean).join(' · ');
-  const main = mainTag(it);
-  const all = it.tags.map(t=>pill(t, true)).join('');
-  const isDone = done.includes(dkey(id));
-  return `<button class="row ${isDone?'seen':''}" data-item="${id}"><div class="head"><span class="chk ${isDone?'on':''}" data-done="${id}"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div class="ttl"><b>${esc(it.title)}</b><small>${esc(sub)||'&nbsp;'}</small></div><div class="side">${main?pill(main):'<span></span>'}<span class="heart ${fav.includes(dkey(id))?'on':''}" data-fav="${id}"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg></span></div></div>
-    <div class="desc">${esc(it.desc)}${it.k?`<span class="readbtn" data-read="${it.k}">Читать</span><div class="txt" id="txt-${it.k}" data-noop></div>`:''}${all?`<div class="tags">${all}</div>`:''}</div></button>`;
-}
-
-// ---------- вкладки каталога ----------
-function ordered(ids){
-  if (!sortKey) return ids;
-  const cmp = sortKey==='year'
-    ? (a,b)=>{ const x=ITEMS[a].year, y=ITEMS[b].year; if(!x&&!y) return 0; if(!x) return 1; if(!y) return -1; return (x-y)*sortDir; }
-    : (a,b)=>ITEMS[a].title.localeCompare(ITEMS[b].title,'ru')*sortDir;
-  return [...ids].sort(cmp);
-}
-function sortBar(){
-  const arrow = sortDir===1 ? '↑' : '↓';
-  const yr = sortKey==='year', nm = sortKey==='title';
-  return `<div class="sortbar"><button class="sbtn ${yr?'on':''}" data-sort="year">Год${yr?' '+arrow:''}</button><button class="sbtn ${nm?'on':''}" data-sort="title">${nm&&sortDir===-1?'Я → А':'А → Я'}</button></div>`;
-}
 // Подгоняем размер шрифта, чтобы название всегда целиком влезало в блок
 function fitTitles(root){
   (root||document).querySelectorAll('.row .ttl b').forEach(b=>{
-    const row = b.closest('.row');
-    if (row.classList.contains('open')) { b.style.fontSize=''; b.style.lineHeight=''; return; }
+    if (b.closest('.row').classList.contains('open')) { b.style.fontSize=''; b.style.lineHeight=''; return; }
     let size = 16.5;
     b.style.fontSize = size+'px'; b.style.lineHeight = '1.2';
-    const max = 42;
-    while (b.scrollHeight > max + 1 && size > 9) { size -= 0.5; b.style.fontSize = size+'px'; }
+    while (b.scrollHeight > 43 && size > 9) { size -= 0.5; b.style.fontSize = size+'px'; }
   });
 }
 window.addEventListener('resize', ()=>fitTitles());
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(()=>fitTitles());
+
+function itemRow(id){
+  const it = ITEMS[id];
+  const yr = it.year ? (it.year < 0 ? (-it.year)+' до н. э.' : it.year) : '';
+  const sub = [it.author, yr].filter(Boolean).join(' · ');
+  const main = it.tags[0];
+  const all = it.tags.map(pill).join('');
+  const isDone = done.includes(dkey(id)), isFav = fav.includes(dkey(id));
+  return `<button class="row ${isDone?'seen':''}" data-item="${id}"><div class="head"><span class="chk ${isDone?'on':''}" data-done="${id}"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div class="ttl"><b>${esc(it.title)}</b><small>${esc(sub)||'&nbsp;'}</small></div><div class="side">${main?pill(main):'<span></span>'}<span class="heart ${isFav?'on':''}" data-fav="${id}"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg></span></div></div>
+    <div class="desc">${esc(it.desc)}${it.k?`<span class="readbtn" data-read="${it.k}">Читать</span><div class="txt" id="txt-${it.k}" data-noop></div>`:''}${all?`<div class="tags">${all}</div>`:''}</div></button>`;
+}
+
+// ---------- вкладки каталога ----------
+const TABS = {film:'фильмов', series:'сериалов', book:'книг'};
 function renderList(){
-  const all = Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab);
-  let html;
-  {
-    const score = id => itemScore(ITEMS[id]);
-    const mine = all.filter(id=>score(id)>0).sort((a,b)=>score(b)-score(a) || byMine(a,b));
-    const rest = all.filter(id=>score(id)===0).sort(byMine);
-    if (topics.length){
-      html = mine.length ? `<div class="sec">Подобрано для тебя</div>${ordered(mine).map(itemRow).join('')}`
-                         : '<div class="empty">Пока нет подборки по твоим темам.<br>Добавь ещё темы в профиле.</div>';
-    } else {
-      html = rest.length ? ordered(rest).map(itemRow).join('') : '<div class="empty">Пока пусто</div>';
-    }
-  }
-  app.innerHTML = `<div class="top-gap"></div>${sortBar()}${html}`;
+  const bar = `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
+  const ids = Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)));
+  app.innerHTML = `<div class="top-gap"></div>${bar}${ids.length ? ids.map(itemRow).join('') : '<div class="empty">Пока пусто</div>'}`;
   fitTitles(app);
 }
 
@@ -143,13 +70,10 @@ function renderMe(){
        <button class="btn" id="pe_save">Сохранить</button><button class="btn ghost" id="pe_cancel">Отмена</button><div class="hint" id="pe_err" style="text-align:center;margin-top:8px"></div></div></div>`
     : `<button class="profile" data-edit="1"><div class="avatar" ${av}>${u.photo_url?'':esc(name[0]||'?')}</div><div style="text-align:left"><b>${esc(name)}</b><div class="hint">${esc(meta || (u.username?'@'+u.username:''))}</div></div></button>`;
   const keyToId = Object.fromEntries(Object.keys(ITEMS).map(id=>[dkey(id),id]));
-  const favItems = fav.map(k=>keyToId[k]).filter(Boolean), doneItems = done.map(k=>keyToId[k]).filter(Boolean);
+  const favItems = fav.map(k=>keyToId[k]).filter(Boolean);
   app.innerHTML = `${head}
-  ${favItems.length ? `<h2>Избранное</h2>${favItems.map(itemRow).join('')}` : ''}
-  <h2>Что меня беспокоит</h2>
-  ${topicBlock()}
-  ${doneItems.length ? `<h2>Просмотрено и прочитано <span class="hint">${doneItems.length}</span></h2>${doneItems.map(itemRow).join('')}` : ''}
-  <h2>Что делать</h2>`;
+  <h2>Избранное</h2>
+  ${favItems.length ? favItems.map(itemRow).join('') : '<div class="hint">Пока ничего нет</div>'}`;
   fitTitles(app);
 }
 
@@ -168,20 +92,7 @@ function bindEdit(){
   };
 }
 
-// ---------- первый опрос ----------
-function renderPicker(){
-  const draw = ()=>{
-    app.innerHTML = `<div class="top"><h1>Что тебя беспокоит?</h1></div>
-    <p class="hint">Выбери одно или несколько — я подберу фильмы, сериалы и книги. Потом это можно поменять в профиле.</p>
-    <div style="margin-top:16px">${topicBlock()}</div>
-    <button class="btn" id="pk_go" ${topics.length?'':'disabled'}>Готово</button>`;
-    app.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>{ buzz(); toggleTopic(b.dataset.topic); draw(); });
-    $('#pk_go').onclick = ()=>{ navwrap.style.display=''; tab='film'; render(); };
-  };
-  draw();
-}
-
-// ---------- знакомство ----------
+// ---------- знакомство при первом входе ----------
 function renderOnboarding(){
   navwrap.style.display='none';
   app.innerHTML = `<div class="top"><h1>Open</h1></div>
@@ -197,7 +108,8 @@ function renderOnboarding(){
     try{
       const r = await api('register',{name,age,country});
       if(!r.ok) throw 0;
-      topics.length ? (navwrap.style.display='', render()) : renderPicker();
+      profile={name,age,country}; localStorage.setItem('open_profile', JSON.stringify(profile));
+      render();
     }catch(e){ $('#ob_err').textContent='Не получилось сохранить, попробуй ещё раз'; $('#ob_go').disabled=false; }
   };
 }
@@ -210,45 +122,37 @@ function render(){
 }
 
 document.addEventListener('click', e=>{
-  const t = e.target.closest('[data-tab],[data-item],[data-topic],[data-edit],[data-done],[data-fav],[data-sort],[data-read],[data-noop]');
+  const t = e.target.closest('[data-tab],[data-item],[data-edit],[data-done],[data-fav],[data-cat],[data-read],[data-noop]');
   if (!t) return;
   if (t.hasAttribute('data-noop')) return;
   buzz();
-  if (t.dataset.tab){ tab=t.dataset.tab; editing=false; render(); window.scrollTo(0,0); }
-  else if (t.dataset.done){
-    const id = t.dataset.done, k = dkey(id), i = done.indexOf(k);
+  const d = t.dataset;
+  if (d.tab){ tab=d.tab; editing=false; render(); window.scrollTo(0,0); }
+  else if (d.cat){ cat = (cat===d.cat) ? '' : d.cat; renderList(); }
+  else if (d.done){
+    const k = dkey(d.done), i = done.indexOf(k);
     i < 0 ? done.push(k) : done.splice(i,1);
     saveDone();
     t.classList.toggle('on', i < 0);
     t.closest('.row').classList.toggle('seen', i < 0);
   }
-  else if (t.dataset.read){
-    const k = t.dataset.read, box = document.getElementById('txt-'+k);
-    if (box.dataset.on === '1') { box.innerHTML=''; box.dataset.on='0'; t.textContent='Читать'; return; }
-    t.textContent = 'Скрыть'; box.dataset.on = '1'; box.innerHTML = '<div class="hint">Загрузка…</div>';
-    fetch('t/'+k+'.json').then(r=>r.json()).then(list=>{
-      box.innerHTML = list.map(p=>`<div class="th"><b>${esc(p.t)}</b><p>${esc(p.x)}</p></div>`).join('');
-    }).catch(()=>{ box.innerHTML = '<div class="hint">Не получилось загрузить текст</div>'; });
-  }
-  else if (t.dataset.sort){
-    const k = t.dataset.sort;
-    if (sortKey===k) sortDir = -sortDir; else { sortKey = k; sortDir = 1; }
-    localStorage.setItem('open_sk', sortKey); localStorage.setItem('open_sd', sortDir);
-    renderList();
-  }
-  else if (t.dataset.fav){
-    const id = t.dataset.fav, k = dkey(id), i = fav.indexOf(k);
+  else if (d.fav){
+    const k = dkey(d.fav), i = fav.indexOf(k);
     i < 0 ? fav.push(k) : fav.splice(i,1);
     saveFav();
     t.classList.toggle('on', i < 0);
     if (tab==='me') renderMe();
   }
-  else if (t.dataset.edit){ editing = true; renderMe(); bindEdit(); }
-  else if (t.dataset.item){ t.classList.toggle('open'); fitTitles(t); }
-  else if (t.dataset.topic){
-    toggleTopic(t.dataset.topic);
-    render();
+  else if (d.read){
+    const box = document.getElementById('txt-'+d.read);
+    if (box.dataset.on === '1') { box.innerHTML=''; box.dataset.on='0'; t.textContent='Читать'; return; }
+    t.textContent = 'Скрыть'; box.dataset.on = '1'; box.innerHTML = '<div class="hint">Загрузка…</div>';
+    fetch('t/'+d.read+'.json').then(r=>r.json()).then(list=>{
+      box.innerHTML = list.map(p=>`<div class="th"><b>${esc(p.t)}</b><p>${esc(p.x)}</p></div>`).join('');
+    }).catch(()=>{ box.innerHTML = '<div class="hint">Не получилось загрузить текст</div>'; });
   }
+  else if (d.edit){ editing = true; renderMe(); bindEdit(); }
+  else if (d.item){ t.classList.toggle('open'); fitTitles(t); }
 });
 
 (async function start(){
@@ -257,13 +161,10 @@ document.addEventListener('click', e=>{
       const r = await api('me');
       const j = await r.json();
       if (r.ok){
-        topics = (j.topics||[]).filter(validKey);
         fav = j.fav || fav; localStorage.setItem('open_fav', JSON.stringify(fav));
         done = j.done || done; localStorage.setItem('open_done', JSON.stringify(done));
         profile = {name:j.name, age:j.age, country:j.country}; localStorage.setItem('open_profile', JSON.stringify(profile));
-        localStorage.setItem('open_topics', JSON.stringify(topics));
         if (!j.registered) return renderOnboarding();
-        if (!topics.length) return renderPicker();
       }
     }catch(e){}
   }

@@ -86,3 +86,7 @@ h2{margin:24px 0 10px;font-size:19px;font-weight:800}
 .th p{margin:0;color:#d6d6d6;line-height:1.55;font-size:15px}
 .subrow{flex-basis:100%;display:flex;flex-wrap:wrap;gap:8px;padding:2px 0 8px 10px;margin-left:6px;border-left:2px solid var(--line)}
 .chip.sub{padding:9px 13px;font-size:14px}
+.cats{display:flex;gap:8px;overflow-x:auto;margin:0 -18px 16px;padding:0 18px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.cat{flex:none;padding:11px 16px;border-radius:16px;border:1px solid var(--line);background:#0b0b0b;font-weight:800;font-size:15px;color:#cfcfcf}
+.cat.on{background:#fff;color:#000;border-color:#fff}
