@@ -73,7 +73,7 @@ function openSheet(id){
     <h1 class="sh-t">${esc(it.title)}</h1>
     <div class="hint">${esc(subOf(it))}</div>
     <div class="tags" style="margin-top:12px">${it.tags.map(pill).join('')}</div>
-    <div class="sh-actions"><button class="sact ${isDone?'on':''}" data-done="${id}">${CHECK}<span>${isDone?'Просмотрено':'Отметить'}</span></button><button class="sact ${isFav?'on fav':''}" data-fav="${id}">${HEART}<span>${isFav?'В избранном':'В избранное'}</span></button></div>
+    <div class="sh-actions"><button class="sact ${isDone?'on':''}" data-done="${id}">${CHECK}<span>${isDone?(it.t==='book'?'Прочитано':'Просмотрено'):'Отметить'}</span></button><button class="sact ${isFav?'on fav':''}" data-fav="${id}">${HEART}<span>${isFav?'В избранном':'В избранное'}</span></button></div>
     ${it.link?`<button class="watch" data-link="${esc(it.link)}">${it.t==='book'?'Читать':'Смотреть'}</button>`:''}
     <p class="sh-d">${esc(it.desc).split('\n').join('<br>')}</p>
     ${it.k?`<span class="readbtn" data-read="${it.k}">Читать</span><div class="txt" id="txt-${it.k}" data-noop></div>`:''}
