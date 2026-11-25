@@ -2,6 +2,6 @@
 // В тегах контента используется id категории (подтема — "категория.подтема", напр. "fears.camera").
 window.PROBLEMS = [
   {id:"rank", title:"Ранг", color:"186,104,200"},
-  {id:"women", title:"Женщины", color:"255,45,155"},
-  {id:"fears", title:"Страхи", color:"38,198,218"}
+  {id:"fears", title:"Страх", color:"38,198,218"},
+  {id:"women", title:"Женщины", color:"255,45,155"}
 ];
