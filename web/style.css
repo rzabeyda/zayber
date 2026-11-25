@@ -64,3 +64,13 @@ h2{margin:24px 0 10px;font-size:19px;font-weight:800}
 .row .ttl small{display:block;line-height:20px;height:20px}
 .row.open .head{height:auto;min-height:48px}
 .row.open .ttl b{white-space:normal}
+.row .head{height:70px;align-items:stretch;gap:10px}
+.row .chk{align-self:center}
+.row .ttl{align-self:center}
+.row .ttl b{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:16.5px;line-height:21px}
+.row .ttl small{height:19px;line-height:19px}
+.row .side{flex:none;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between}
+.row .side .lab{padding:3px 9px;font-size:11.5px}
+.row .side .heart{width:26px;height:26px}
+.row.open .head{height:auto;min-height:70px}
+.row.open .ttl b{-webkit-line-clamp:unset;display:block}
