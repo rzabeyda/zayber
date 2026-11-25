@@ -130,3 +130,4 @@ body.lock{overflow:hidden}
 .sact.fav.on svg{fill:currentColor}
 .sh-d{color:#dcdcdc;line-height:1.6;font-size:16px;margin:18px 0 0}
 .watch{display:block;width:100%;margin-top:14px;padding:16px;border-radius:18px;background:#fff;color:#000;font-weight:900;font-size:17px;text-align:center}
+.closebtn{display:block;width:100%;margin-top:28px;padding:16px;border-radius:18px;border:1px solid var(--line);background:#0b0b0b;color:#fff;font-weight:800;font-size:16px;text-align:center}

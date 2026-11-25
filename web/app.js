@@ -52,7 +52,6 @@ function itemRow(id){
   const isDone = done.includes(dkey(id)), isFav = fav.includes(dkey(id));
   const main = it.tags[0];
   return `<div class="card ${isDone?'seen':''}" data-item="${id}">${coverHtml(it)}<div class="shade"></div>
-    <span class="chk ${isDone?'on':''}" data-done="${id}">${CHECK}</span><span class="heart ${isFav?'on':''}" data-fav="${id}">${HEART}</span>
     <div class="meta">${main?pill(main):''}<b class="ct">${esc(it.title)}</b><small>${esc(subOf(it))||'&nbsp;'}</small></div></div>`;
 }
 
@@ -78,6 +77,7 @@ function openSheet(id){
     ${it.link?`<button class="watch" data-link="${esc(it.link)}">${it.t==='book'?'Читать':'Смотреть'}</button>`:''}
     <p class="sh-d">${esc(it.desc).split('\n').join('<br>')}</p>
     ${it.k?`<span class="readbtn" data-read="${it.k}">Читать</span><div class="txt" id="txt-${it.k}" data-noop></div>`:''}
+    <button class="closebtn" data-close="1">Закрыть</button>
   </div>`;
   sheet.classList.add('open'); sheet.scrollTop = 0; document.body.classList.add('lock');
   if (tg && tg.BackButton){ tg.BackButton.onClick(closeSheet); tg.BackButton.show(); }
