@@ -57,3 +57,10 @@ h2{margin:24px 0 10px;font-size:19px;font-weight:800}
 .heart.on{color:#ff2d9b}
 .heart.on svg{fill:currentColor}
 .row .head{gap:10px}
+.row{padding:14px 18px}
+.row .head{height:48px}
+.row .ttl{min-width:0;overflow:hidden}
+.row .ttl b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:17px;line-height:24px}
+.row .ttl small{display:block;line-height:20px;height:20px}
+.row.open .head{height:auto;min-height:48px}
+.row.open .ttl b{white-space:normal}

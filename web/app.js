@@ -50,7 +50,7 @@ function itemRow(id){
   const main = it.tags.find(t=>topics.includes(t)) || it.tags[0];
   const all = it.tags.map(t=>pill(t)).join('');
   const isDone = done.includes(dkey(id));
-  return `<button class="row ${isDone?'seen':''}" data-item="${id}"><div class="head"><span class="chk ${isDone?'on':''}" data-done="${id}"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div class="ttl"><b>${esc(it.title)}</b><small>${esc(sub)}</small></div>${main?pill(main):''}<span class="heart ${fav.includes(dkey(id))?'on':''}" data-fav="${id}"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg></span></div>
+  return `<button class="row ${isDone?'seen':''}" data-item="${id}"><div class="head"><span class="chk ${isDone?'on':''}" data-done="${id}"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div class="ttl"><b>${esc(it.title)}</b><small>${esc(sub)||'&nbsp;'}</small></div>${main?pill(main):''}<span class="heart ${fav.includes(dkey(id))?'on':''}" data-fav="${id}"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg></span></div>
     <div class="desc">${esc(it.desc)}${all?`<div class="tags">${all}</div>`:''}</div></button>`;
 }
 
