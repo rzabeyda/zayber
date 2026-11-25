@@ -20,7 +20,7 @@ const TOPIC = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
   });
 })();
 const LABEL = {fight:['Сила','239,83,80'],people:['Люди','66,165,245'],women:['Отношения','244,114,182'],selfesteem:['Уверенность','255,193,7'],money:['Деньги','46,204,113'],lazy:['Дисциплина','255,152,0'],lonely:['Одиночество','171,130,255'],anxiety:['Спокойствие','38,198,218'],hopeless:['Выход','144,164,174'],manifest:['Мышление','186,104,200']};
-const pill = (t, cls='') => { const [n,c] = LABEL[t]; return `<span class="lab ${cls}" style="color:rgb(${c});background:rgba(${c},.13);border-color:rgba(${c},.38)">${n}</span>`; };
+const pill = (t, cls='') => { const n = LABEL[t][0], c = '255,45,155'; return `<span class="lab ${cls}" style="color:rgb(${c});background:rgba(${c},.13);border-color:rgba(${c},.38)">${n}</span>`; };
 const byMine = (a,b) => (ITEMS[b].mine?1:0) - (ITEMS[a].mine?1:0);
 
 let tab = 'film', q = '', topics = [], profile = {}, editing = false;
