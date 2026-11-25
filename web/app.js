@@ -7,29 +7,11 @@ const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&
 const TITLES = {film:'Фильмы', series:'Сериалы', book:'Книги'};
 const TOPIC = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
 
-// Подмешиваем контент из extra.js (твои фильмы/сериалы/книги); дубли заменяем твоими версиями
-(function(){
-  const norm = s => s.toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]/g,'');
-  const have = {}; Object.keys(ITEMS).forEach(id=>{ have[norm(ITEMS[id].title)] = id; });
-  delete ITEMS.dark;
-  (window.EXTRA||[]).forEach((x,i)=>{
-    let tags = x.tags.slice();
-    const old = have[norm(x.title)];
-    if (old){ tags = [...new Set([...tags, ...ITEMS[old].tags])]; delete ITEMS[old]; }
-    ITEMS['x'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags, mine:1};
-  });
-})();
-const LABEL = {women:['Женщины','255,45,155'],men:['Мужчины','79,195,247'],money:['Деньги','46,204,113'],health:['Здоровье','255,112,67'],anxiety:['Тревога','38,198,218'],relations:['Отношения','171,130,255'],work:['Работа','255,193,7']};
+// Каталог -> ITEMS
+const ITEMS = {};
+(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:x.tags.filter(t=>TOPIC[t]), mine:x.mine}; });
+const LABEL = Object.fromEntries(PROBLEMS.map(p=>[p.id,[p.short,p.color]]));
 const pill = (t, cls='') => { const [n,c] = LABEL[t]; return `<span class="lab ${cls}" style="color:rgb(${c});background:rgba(${c},.13);border-color:rgba(${c},.38)">${n}</span>`; };
-// Книги из базы books-бота: дубли пропускаем
-(function(){
-  const norm = s => s.toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]/g,'');
-  const have = new Set(Object.keys(ITEMS).map(id=>norm(ITEMS[id].title)));
-  (window.EXTRA_BOOKS||[]).forEach((x,i)=>{
-    const k = norm(x.title); if (have.has(k)) return; have.add(k);
-    ITEMS['b'+i] = {t:'book', title:x.title, author:x.author, year:x.year, desc:x.desc, tags:x.tags};
-  });
-})();
 const byMine = (a,b) => (ITEMS[b].mine?1:0) - (ITEMS[a].mine?1:0);
 
 let tab = 'film', q = '', topics = [], profile = {}, editing = false, done = [];
