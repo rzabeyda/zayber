@@ -246,3 +246,12 @@ document.addEventListener('click', e=>{
   render();
 })();
 })();
+
+(function(){
+  const b = document.getElementById('totop');
+  if (!b) return;
+  const upd = () => b.classList.toggle('show', window.scrollY > 400);
+  window.addEventListener('scroll', upd, {passive:true});
+  b.addEventListener('click', () => { window.scrollTo(0,0); try{ Telegram.WebApp.HapticFeedback.impactOccurred('light'); }catch(e){} });
+  upd();
+})();

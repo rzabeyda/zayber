@@ -157,3 +157,7 @@ body.lock{overflow:hidden}
 @keyframes slideR{from{transform:translateX(-36px);opacity:.2}to{transform:none;opacity:1}}
 #sheet.slide-l{animation:slideL .22s ease}
 #sheet.slide-r{animation:slideR .22s ease}
+
+#totop{position:fixed;right:16px;bottom:calc(86px + env(safe-area-inset-bottom));width:44px;height:44px;border-radius:50%;background:#000;border:1.5px solid #fff;box-shadow:0 0 10px rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;padding:0;z-index:19;opacity:0;pointer-events:none;transition:opacity .2s;cursor:pointer}
+#totop.show{opacity:1;pointer-events:auto}
+body.lock #totop{display:none}
