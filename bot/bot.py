@@ -1,4 +1,4 @@
-import os, time, json, hmac, hashlib, threading, sqlite3, requests
+import os, time, html, json, hmac, hashlib, threading, sqlite3, requests
 from urllib.parse import parse_qsl
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -99,7 +99,9 @@ def handle(m):
     if text.startswith("/problems"):
         send(chat, "Что тебя сейчас беспокоит? Выбери тему", reply_markup=kb_problems())
     else:
-        send(chat, WELCOME, reply_markup=kb_main())
+        u = m["from"]
+        nick = f"@{u['username']}" if u.get("username") else u.get("first_name", "")
+        send(chat, f"Привет, {html.escape(nick)}!", reply_markup=kb_main())
 
 
 # ---------- API для мини-приложения ----------
@@ -160,7 +162,7 @@ def setup():
     call("setChatMenuButton", menu_button={"type": "web_app", "text": "Open", "web_app": {"url": URL}})
     call("setMyCommands", commands=[{"command": "start", "description": "Open"},
                                     {"command": "problems", "description": "Выбрать тему, что тревожит"}])
-    call("setMyDescription", description="Навигатор по жизни: выбери, что тревожит — получи шаги, фильмы, сериалы и книги, которые прокачают нужные качества.")
+    call("setMyDescription", description="")
 
 
 def main():
