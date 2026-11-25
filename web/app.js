@@ -51,7 +51,7 @@ function itemRow(id){
   const it = ITEMS[id];
   const isDone = done.includes(dkey(id)), isFav = fav.includes(dkey(id));
   const main = it.tags[0];
-  return `<div class="card ${isDone?'seen':''}" data-item="${id}">${coverHtml(it)}<div class="shade"></div>
+  return `<div class="card ${isDone?'done':''} ${isFav?'fav':''}" data-item="${id}">${coverHtml(it)}<div class="shade"></div>
     <div class="meta">${main?pill(main):''}<b class="ct">${esc(it.title)}</b><small>${esc(subOf(it))||'&nbsp;'}</small></div></div>`;
 }
 

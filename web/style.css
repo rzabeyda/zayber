@@ -131,3 +131,11 @@ body.lock{overflow:hidden}
 .sh-d{color:#dcdcdc;line-height:1.6;font-size:16px;margin:18px 0 0}
 .watch{display:block;width:100%;margin-top:14px;padding:16px;border-radius:18px;background:#fff;color:#000;font-weight:900;font-size:17px;text-align:center}
 .closebtn{display:block;width:100%;margin-top:28px;padding:16px;border-radius:18px;border:1px solid var(--line);background:#0b0b0b;color:#fff;font-weight:800;font-size:16px;text-align:center}
+
+/* неоновые рамки карточек */
+.card{border:1.5px solid rgba(255,255,255,.38);box-shadow:0 0 10px rgba(255,255,255,.10),inset 0 0 10px rgba(255,255,255,.05);transition:box-shadow .2s,border-color .2s}
+.card.seen .cv,.card.seen .meta{opacity:1}
+.card.fav{border-color:#ff2d9b;box-shadow:0 0 12px rgba(255,45,155,.65),0 0 24px rgba(255,45,155,.28),inset 0 0 12px rgba(255,45,155,.22)}
+.card.done{border-color:#39ff88;box-shadow:0 0 12px rgba(57,255,136,.65),0 0 24px rgba(57,255,136,.28),inset 0 0 12px rgba(57,255,136,.2)}
+.card.done.fav{border-color:#39ff88;box-shadow:0 0 12px rgba(57,255,136,.65),0 0 26px rgba(255,45,155,.55),inset 0 0 12px rgba(255,45,155,.2)}
+#app{overflow-clip-margin:30px}
