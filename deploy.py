@@ -24,8 +24,13 @@ def put(local, remote):
 
 
 run("mkdir -p /var/www/zayber /opt/open-bot")
-for f in os.listdir(os.path.join(ROOT, "web")):
-    put(os.path.join(ROOT, "web", f), f"/var/www/zayber/{f}")
+for dirpath, _, files in os.walk(os.path.join(ROOT, "web")):
+    rel = os.path.relpath(dirpath, os.path.join(ROOT, "web")).replace("\\", "/")
+    remote_dir = "/var/www/zayber" + ("" if rel == "." else "/" + rel)
+    if rel != ".":
+        run(f"mkdir -p {remote_dir}")
+    for f in files:
+        put(os.path.join(dirpath, f), f"{remote_dir}/{f}")
 put(os.path.join(ROOT, "bot", "bot.py"), "/opt/open-bot/bot.py")
 
 if os.environ.get("OPEN_BOT_TOKEN"):

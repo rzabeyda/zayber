@@ -9,7 +9,7 @@ const TOPIC = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
 
 // Каталог -> ITEMS
 const ITEMS = {};
-(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:x.tags.filter(t=>TOPIC[t]), mine:x.mine}; });
+(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:x.tags.filter(t=>TOPIC[t]), mine:x.mine, k:x.k}; });
 const LABEL = Object.fromEntries(PROBLEMS.map(p=>[p.id,[p.short,p.color]]));
 const pill = (t, cls='') => { const [n,c] = LABEL[t]; return `<span class="lab ${cls}" style="color:rgb(${c});background:rgba(${c},.13);border-color:rgba(${c},.38)">${n}</span>`; };
 const byMine = (a,b) => (ITEMS[b].mine?1:0) - (ITEMS[a].mine?1:0);
@@ -44,7 +44,7 @@ function itemRow(id){
   const all = it.tags.map(t=>pill(t)).join('');
   const isDone = done.includes(dkey(id));
   return `<button class="row ${isDone?'seen':''}" data-item="${id}"><div class="head"><span class="chk ${isDone?'on':''}" data-done="${id}"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div class="ttl"><b>${esc(it.title)}</b><small>${esc(sub)||'&nbsp;'}</small></div><div class="side">${main?pill(main):'<span></span>'}<span class="heart ${fav.includes(dkey(id))?'on':''}" data-fav="${id}"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg></span></div></div>
-    <div class="desc">${esc(it.desc)}${all?`<div class="tags">${all}</div>`:''}</div></button>`;
+    <div class="desc">${esc(it.desc)}${it.k?`<span class="readbtn" data-read="${it.k}">Читать</span><div class="txt" id="txt-${it.k}" data-noop></div>`:''}${all?`<div class="tags">${all}</div>`:''}</div></button>`;
 }
 
 // ---------- вкладки каталога ----------
@@ -113,7 +113,7 @@ function renderMe(){
   ${mine.length ? `<div class="chips">${mine.map(p=>chip(p,true)).join('')}</div>` : '<div class="hint">Пока ничего не выбрано</div>'}
   ${other.length ? `<h2>Добавить ещё</h2><div class="chips">${other.map(p=>chip(p,false)).join('')}</div>` : ''}
   ${doneItems.length ? `<h2>Просмотрено и прочитано <span class="hint">${doneItems.length}</span></h2>${doneItems.map(itemRow).join('')}` : ''}
-  ${mine.length ? `<h2>Что делать</h2>` + mine.map(p=>`<div class="sec">${esc(p.title)}</div>${p.steps.map((s,i)=>`<div class="step"><i>${i+1}</i><span>${esc(s)}</span></div>`).join('')}`).join('') : ''}`;
+  <h2>Что делать</h2>`;
   fitTitles(app);
 }
 
@@ -175,8 +175,9 @@ function render(){
 }
 
 document.addEventListener('click', e=>{
-  const t = e.target.closest('[data-tab],[data-item],[data-topic],[data-edit],[data-done],[data-fav],[data-sort]');
+  const t = e.target.closest('[data-tab],[data-item],[data-topic],[data-edit],[data-done],[data-fav],[data-sort],[data-read],[data-noop]');
   if (!t) return;
+  if (t.hasAttribute('data-noop')) return;
   buzz();
   if (t.dataset.tab){ tab=t.dataset.tab; editing=false; render(); window.scrollTo(0,0); }
   else if (t.dataset.done){
@@ -185,6 +186,14 @@ document.addEventListener('click', e=>{
     saveDone();
     t.classList.toggle('on', i < 0);
     t.closest('.row').classList.toggle('seen', i < 0);
+  }
+  else if (t.dataset.read){
+    const k = t.dataset.read, box = document.getElementById('txt-'+k);
+    if (box.dataset.on === '1') { box.innerHTML=''; box.dataset.on='0'; t.textContent='Читать'; return; }
+    t.textContent = 'Скрыть'; box.dataset.on = '1'; box.innerHTML = '<div class="hint">Загрузка…</div>';
+    fetch('t/'+k+'.json').then(r=>r.json()).then(list=>{
+      box.innerHTML = list.map(p=>`<div class="th"><b>${esc(p.t)}</b><p>${esc(p.x)}</p></div>`).join('');
+    }).catch(()=>{ box.innerHTML = '<div class="hint">Не получилось загрузить текст</div>'; });
   }
   else if (t.dataset.sort){
     const k = t.dataset.sort;
