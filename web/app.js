@@ -7,6 +7,20 @@ const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&
 const TITLES = {film:'Фильмы', series:'Сериалы', book:'Книги'};
 const TOPIC = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
 
+// Подмешиваем контент из extra.js (твои фильмы/сериалы/книги); дубли заменяем твоими версиями
+(function(){
+  const norm = s => s.toLowerCase().replace(/ё/g,'е').replace(/[^a-zа-я0-9]/g,'');
+  const have = {}; Object.keys(ITEMS).forEach(id=>{ have[norm(ITEMS[id].title)] = id; });
+  delete ITEMS.dark;
+  (window.EXTRA||[]).forEach((x,i)=>{
+    let tags = x.tags.slice();
+    const old = have[norm(x.title)];
+    if (old){ tags = [...new Set([...tags, ...ITEMS[old].tags])]; delete ITEMS[old]; }
+    ITEMS['x'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags, mine:1};
+  });
+})();
+const byMine = (a,b) => (ITEMS[b].mine?1:0) - (ITEMS[a].mine?1:0);
+
 let tab = 'film', q = '', topics = [];
 try { topics = JSON.parse(localStorage.getItem('open_topics')||'[]').filter(t=>TOPIC[t]); } catch(e){}
 
@@ -39,8 +53,8 @@ function renderList(){
     html = ids.length ? ids.map(itemRow).join('') : '<div class="empty">Ничего не найдено</div>';
   } else {
     const score = id => ITEMS[id].tags.filter(t=>topics.includes(t)).length;
-    const mine = all.filter(id=>score(id)>0).sort((a,b)=>score(b)-score(a));
-    const rest = all.filter(id=>score(id)===0);
+    const mine = all.filter(id=>score(id)>0).sort((a,b)=>score(b)-score(a) || byMine(a,b));
+    const rest = all.filter(id=>score(id)===0).sort(byMine);
     html = (mine.length ? `<div class="sec">Подобрано для тебя</div>${mine.map(itemRow).join('')}` : '') +
            (rest.length ? `<div class="sec">${mine.length?'Остальное':'Все'}</div>${rest.map(itemRow).join('')}` : '') ||
            '<div class="empty">Пока пусто</div>';
