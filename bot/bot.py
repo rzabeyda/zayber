@@ -16,7 +16,6 @@ if "city" not in [r[1] for r in db.execute("PRAGMA table_info(users)")]:
     db.execute("ALTER TABLE users ADD COLUMN city TEXT")
 db.commit()
 lock = threading.RLock()
-PROMPTED = {}
 
 
 def call(method, **kw):
@@ -96,38 +95,11 @@ def send(chat, text, **kw):
 def handle(m):
     chat = m["chat"]["id"]
     text = (m.get("text") or "").strip()
-    uid = m["from"]["id"]
-    state = get_user(m["from"])
-    if state == "name":
-        if not text or text.startswith("/"):
-            if time.time() - PROMPTED.get(uid, 0) < 300:
-                return
-            PROMPTED[uid] = time.time()
-            send(chat, "Привет! Я <b>Open</b> — помогу разобраться, что смотреть и читать, когда что-то тревожит.\n\nДавай познакомимся. <b>Как тебя зовут?</b>")
-        else:
-            set_field(uid, name=text[:40], state="age")
-            send(chat, f"Приятно, {text[:40]}! Сколько тебе <b>лет</b>?")
-        return
-    if state == "age":
-        if text.isdigit() and 10 <= int(text) <= 99:
-            set_field(uid, age=int(text), state="city")
-            send(chat, "Из какого ты <b>города</b>?")
-        else:
-            send(chat, "Напиши возраст числом, например 27")
-        return
-    if state == "city":
-        if not text or text.startswith("/"):
-            send(chat, "Напиши название города")
-        else:
-            set_field(uid, city=text[:60], state="done")
-            notify_done(uid)
-            name = db.execute("SELECT name FROM users WHERE tg_id=?", (uid,)).fetchone()[0]
-            send(chat, f"Готово, {name}!\n\n" + WELCOME, reply_markup=kb_main())
-        return
-    if text.startswith(("/start", "/menu", "/help")):
-        send(chat, WELCOME, reply_markup=kb_main())
-    else:
+    get_user(m["from"])  # регистрирует нового пользователя и уведомляет админа
+    if text.startswith("/problems"):
         send(chat, "Что тебя сейчас беспокоит? Выбери тему", reply_markup=kb_problems())
+    else:
+        send(chat, WELCOME, reply_markup=kb_main())
 
 
 # ---------- API для мини-приложения ----------
