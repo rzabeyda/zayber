@@ -74,9 +74,7 @@ GENDER_KB = {"inline_keyboard": [[{"text": "👨 Мужской", "callback_data
 
 
 def finish(chat, name):
-    call("sendMessage", chat_id=chat, text=f"Готово, {name}! 🔥
-
-" + WELCOME, parse_mode="HTML", reply_markup=kb_main())
+    call("sendMessage", chat_id=chat, text=f"Готово, {name}! 🔥\n\n" + WELCOME, parse_mode="HTML", reply_markup=kb_main())
 
 
 def handle(m):
@@ -85,9 +83,7 @@ def handle(m):
     state = get_user(m["from"])
     if state == "name":
         if text.startswith("/start") or not text or text.startswith("/"):
-            call("sendMessage", chat_id=chat, text="Привет! 👋 Я «Путь» — помогу разобраться, что смотреть и читать, когда что-то тревожит.
-
-Давай познакомимся. <b>Как тебя зовут?</b>", parse_mode="HTML")
+            call("sendMessage", chat_id=chat, text="Привет! 👋 Я «Путь» — помогу разобраться, что смотреть и читать, когда что-то тревожит.\n\nДавай познакомимся. <b>Как тебя зовут?</b>", parse_mode="HTML")
         else:
             set_field(m["from"]["id"], name=text[:40], state="age")
             call("sendMessage", chat_id=chat, text=f"Приятно, {text[:40]}! Сколько тебе <b>лет</b>?", parse_mode="HTML")
