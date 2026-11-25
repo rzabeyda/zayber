@@ -37,3 +37,8 @@ h2{margin:24px 0 10px;font-size:19px;font-weight:800}
 #nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:21px;color:var(--dim);font-size:12px;font-weight:800;border:1px solid transparent;transition:.2s}
 #nav button svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
 #nav button.on{color:#fff;border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.07)}
+.top-gap{height:20px}
+.row .head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.row .ttl{min-width:0}
+.lab{flex:none;padding:5px 11px;border-radius:12px;border:1px solid;font-size:12.5px;font-weight:800;white-space:nowrap}
+.tags .lab{font-size:12px}

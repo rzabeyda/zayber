@@ -19,6 +19,8 @@ const TOPIC = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
     ITEMS['x'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags, mine:1};
   });
 })();
+const LABEL = {fight:['Сила','239,83,80'],people:['Люди','66,165,245'],women:['Отношения','244,114,182'],selfesteem:['Уверенность','255,193,7'],money:['Деньги','46,204,113'],lazy:['Дисциплина','255,152,0'],lonely:['Одиночество','171,130,255'],anxiety:['Спокойствие','38,198,218'],hopeless:['Выход','144,164,174'],manifest:['Мышление','186,104,200']};
+const pill = (t, cls='') => { const [n,c] = LABEL[t]; return `<span class="lab ${cls}" style="color:rgb(${c});background:rgba(${c},.13);border-color:rgba(${c},.38)">${n}</span>`; };
 const byMine = (a,b) => (ITEMS[b].mine?1:0) - (ITEMS[a].mine?1:0);
 
 let tab = 'film', q = '', topics = [];
@@ -38,20 +40,17 @@ const buzz = () => { try{ tg && tg.HapticFeedback.impactOccurred('light'); }catc
 function itemRow(id){
   const it = ITEMS[id];
   const sub = [it.author, it.year].filter(Boolean).join(' · ');
-  const tg_ = it.tags.map(t=>`<span class="tag">${esc(TOPIC[t].title)}</span>`).join('');
-  return `<button class="row" data-item="${id}"><b>${esc(it.title)}</b><small>${esc(sub)}</small>
-    <div class="desc">${esc(it.desc)}${tg_?`<div class="tags">${tg_}</div>`:''}</div></button>`;
+  const main = it.tags.find(t=>topics.includes(t)) || it.tags[0];
+  const all = it.tags.map(t=>pill(t)).join('');
+  return `<button class="row" data-item="${id}"><div class="head"><div class="ttl"><b>${esc(it.title)}</b><small>${esc(sub)}</small></div>${main?pill(main):''}</div>
+    <div class="desc">${esc(it.desc)}${all?`<div class="tags">${all}</div>`:''}</div></button>`;
 }
 
 // ---------- вкладки каталога ----------
 function renderList(){
   const all = Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab);
-  const needle = q.trim().toLowerCase();
   let html;
-  if (needle){
-    const ids = all.filter(id=>(ITEMS[id].title+' '+(ITEMS[id].author||'')).toLowerCase().includes(needle));
-    html = ids.length ? ids.map(itemRow).join('') : '<div class="empty">Ничего не найдено</div>';
-  } else {
+  {
     const score = id => ITEMS[id].tags.filter(t=>topics.includes(t)).length;
     const mine = all.filter(id=>score(id)>0).sort((a,b)=>score(b)-score(a) || byMine(a,b));
     const rest = all.filter(id=>score(id)===0).sort(byMine);
@@ -59,9 +58,7 @@ function renderList(){
            (rest.length ? `<div class="sec">${mine.length?'Остальное':'Все'}</div>${rest.map(itemRow).join('')}` : '') ||
            '<div class="empty">Пока пусто</div>';
   }
-  app.innerHTML = `<input class="search top-search" id="q" placeholder="Поиск: ${TITLES[tab].toLowerCase()}" value="${esc(q)}" autocomplete="off"><div id="list">${html}</div>`;
-  const inp = $('#q');
-  inp.oninput = ()=>{ q = inp.value; const pos = inp.selectionStart; renderList(); const n = $('#q'); n.focus(); n.setSelectionRange(pos,pos); };
+  app.innerHTML = `<div class="top-gap"></div>${html}`;
 }
 
 // ---------- профиль ----------
