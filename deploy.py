@@ -1,4 +1,4 @@
-"""Деплой: SSH_PASS=... BOT_TOKEN=... python deploy.py  (BOT_TOKEN нужен только при первом запуске)"""
+"""Деплой: SSH_PASS=... OPEN_BOT_TOKEN=... python deploy.py  (BOT_TOKEN нужен только при первом запуске)"""
 import sys; sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 import os, sys, paramiko
 
@@ -28,9 +28,9 @@ for f in os.listdir(os.path.join(ROOT, "web")):
     put(os.path.join(ROOT, "web", f), f"/var/www/zayber/{f}")
 put(os.path.join(ROOT, "bot", "bot.py"), "/opt/open-bot/bot.py")
 
-if os.environ.get("BOT_TOKEN"):
+if os.environ.get("OPEN_BOT_TOKEN"):
     with sftp.open("/etc/open_bot.env", "w") as f:
-        f.write(f"BOT_TOKEN={os.environ['BOT_TOKEN']}\nWEBAPP_URL=https://{DOMAIN}/\n")
+        f.write(f"BOT_TOKEN={os.environ["OPEN_BOT_TOKEN"]}\nWEBAPP_URL=https://{DOMAIN}/\n")
     run("chmod 600 /etc/open_bot.env")
 
 unit = """[Unit]
