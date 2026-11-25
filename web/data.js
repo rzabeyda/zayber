@@ -3,6 +3,5 @@
 window.PROBLEMS = [
   {id:"rank", title:"Ранг", color:"186,104,200"},
   {id:"women", title:"Женщины", color:"255,45,155"},
-  {id:"fears", title:"Страхи", color:"38,198,218"},
-  {id:"addictions", title:"Зависимости", color:"229,57,53"}
+  {id:"fears", title:"Страхи", color:"38,198,218"}
 ];
