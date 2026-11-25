@@ -57,31 +57,6 @@ def kb_main():
     return {"inline_keyboard": [[app_btn("Открыть")]]}
 
 
-PROBLEMS = [("fight", "Страх драться"), ("people", "Боюсь людей"), ("women", "Страх женщин"),
-            ("selfesteem", "Неуверенность"), ("money", "Нет денег"), ("lazy", "Лень"),
-            ("lonely", "Одиночество"), ("anxiety", "Тревога"), ("hopeless", "Тупик"),
-            ("manifest", "Манифестация")]
-
-
-def kb_problems():
-    rows, row = [], []
-    for pid, title in PROBLEMS:
-        row.append(app_btn(title, pid))
-        if len(row) == 2:
-            rows.append(row)
-            row = []
-    if row:
-        rows.append(row)
-    rows.append([app_btn("Открыть всё приложение")])
-    return {"inline_keyboard": rows}
-
-
-WELCOME = ("<b>Open</b> — навигатор по жизни.\n\n"
-           "Выбери, что тебя тревожит, — и я подскажу <b>конкретные шаги</b>, "
-           "а также какие <b>фильмы, сериалы и книги</b> посмотреть, чтобы прокачать нужное качество: "
-           "смелость, дисциплину, спокойствие, уверенность.\n\nНажми кнопку ниже")
-
-
 def send(chat, text, **kw):
     call("sendMessage", chat_id=chat, text=text, parse_mode="HTML", **kw)
 
@@ -90,12 +65,9 @@ def handle(m):
     chat = m["chat"]["id"]
     text = (m.get("text") or "").strip()
     get_user(m["from"])  # регистрирует нового пользователя и уведомляет админа
-    if text.startswith("/problems"):
-        send(chat, "Что тебя сейчас беспокоит? Выбери тему", reply_markup=kb_problems())
-    else:
-        u = m["from"]
-        nick = f"@{u['username']}" if u.get("username") else u.get("first_name", "")
-        send(chat, f"Привет, {html.escape(nick)}!", reply_markup=kb_main())
+    u = m["from"]
+    nick = f"@{u['username']}" if u.get("username") else u.get("first_name", "")
+    send(chat, f"Привет, {html.escape(nick)}!", reply_markup=kb_main())
 
 
 # ---------- API для мини-приложения ----------
@@ -152,8 +124,7 @@ def run_api():
 
 def setup():
     call("setChatMenuButton", menu_button={"type": "web_app", "text": "Open", "web_app": {"url": URL}})
-    call("setMyCommands", commands=[{"command": "start", "description": "Open"},
-                                    {"command": "problems", "description": "Выбрать тему, что тревожит"}])
+    call("setMyCommands", commands=[{"command": "start", "description": "Open"}])
     call("setMyDescription", description="")
 
 
