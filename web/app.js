@@ -67,7 +67,7 @@ function ordered(ids){
 function sortBtns(){
   const arrow = sortDir===1 ? '↑' : '↓';
   const b = (k,txt)=>`<button class="sq ${sortKey===k?'on':''}" data-sort="${k}">${txt}${sortKey===k?`<i>${arrow}</i>`:''}</button>`;
-  return `<div class="sorts">${b('title','А')}${b('year','Год')}</div>`;
+  return `<div class="sorts">${b('title','АБВ')}${b('year','Год')}</div>`;
 }
 function renderList(){
   const bar = !SHOW_LABELS ? '' : `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
