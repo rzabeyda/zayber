@@ -93,10 +93,10 @@ function renderMe(){
   const keyToId = Object.fromEntries(Object.keys(ITEMS).map(id=>[dkey(id),id]));
   const favItems = fav.map(k=>keyToId[k]).filter(Boolean), doneItems = done.map(k=>keyToId[k]).filter(Boolean);
   app.innerHTML = `${head}
+  ${favItems.length ? `<h2>Избранное</h2>${favItems.map(itemRow).join('')}` : ''}
   <h2>Что меня беспокоит</h2>
   ${mine.length ? `<div class="chips">${mine.map(p=>chip(p,true)).join('')}</div>` : '<div class="hint">Пока ничего не выбрано</div>'}
   ${other.length ? `<h2>Добавить ещё</h2><div class="chips">${other.map(p=>chip(p,false)).join('')}</div>` : ''}
-  ${favItems.length ? `<h2>Избранное</h2>${favItems.map(itemRow).join('')}` : ''}
   ${doneItems.length ? `<h2>Просмотрено и прочитано <span class="hint">${doneItems.length}</span></h2>${doneItems.map(itemRow).join('')}` : ''}
   ${mine.length ? `<h2>Что делать</h2>` + mine.map(p=>`<div class="sec">${esc(p.title)}</div>${p.steps.map((s,i)=>`<div class="step"><i>${i+1}</i><span>${esc(s)}</span></div>`).join('')}`).join('') : ''}`;
 }
