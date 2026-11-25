@@ -59,7 +59,7 @@ function itemRow(id){
 function renderList(){
   const bar = !SHOW_LABELS ? '' : `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
   const ids = Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)));
-  app.innerHTML = `<div class="top-gap"></div>${bar}${ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Пока пусто</div>'}`;
+  app.innerHTML = `<div class="toplabel"><span>Повышаем Ранг</span></div>${bar}${ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Пока пусто</div>'}`;
   fitTitles(app);
 }
 

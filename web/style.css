@@ -139,3 +139,6 @@ body.lock{overflow:hidden}
 .card.done{border-color:#39ff88;box-shadow:0 0 12px rgba(57,255,136,.65),0 0 24px rgba(57,255,136,.28),inset 0 0 12px rgba(57,255,136,.2)}
 .card.done.fav{border-color:#39ff88;box-shadow:0 0 12px rgba(57,255,136,.65),0 0 26px rgba(255,45,155,.55),inset 0 0 12px rgba(255,45,155,.2)}
 #app{overflow-clip-margin:30px}
+.card .cv,.sh-cover .cv{object-position:50% 14%}
+.toplabel{display:flex;justify-content:center;padding:22px 0 18px}
+.toplabel span{padding:11px 24px;border-radius:18px;border:1.5px solid #ba68c8;color:#fff;font-weight:900;font-size:19px;letter-spacing:.3px;background:rgba(186,104,200,.12);box-shadow:0 0 14px rgba(186,104,200,.55),0 0 28px rgba(186,104,200,.22),inset 0 0 12px rgba(186,104,200,.2)}
