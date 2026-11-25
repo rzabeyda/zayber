@@ -10,7 +10,7 @@ const buzz = () => { try{ tg && tg.HapticFeedback.impactOccurred('light'); }catc
 const CATS = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
 const catOf = t => CATS[String(t).split('.')[0]];
 const ITEMS = {};
-(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, k:x.k, cover:x.cover}; });
+(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, k:x.k, cover:x.cover, link:x.link}; });
 const dkey = id => ITEMS[id].t + ':' + ITEMS[id].title;
 const SHOW_LABELS = false; // метки Ранг/Страх/Женщины временно выключены
 const pill = key => { if (!SHOW_LABELS) return ''; const c = catOf(key); return `<span class="lab" style="color:rgb(${c.color});background:rgba(${c.color},.13);border-color:rgba(${c.color},.38)">${esc(c.title)}</span>`; };
@@ -75,6 +75,7 @@ function openSheet(id){
     <div class="hint">${esc(subOf(it))}</div>
     <div class="tags" style="margin-top:12px">${it.tags.map(pill).join('')}</div>
     <div class="sh-actions"><button class="sact ${isDone?'on':''}" data-done="${id}">${CHECK}<span>${isDone?'Просмотрено':'Отметить'}</span></button><button class="sact ${isFav?'on fav':''}" data-fav="${id}">${HEART}<span>${isFav?'В избранном':'В избранное'}</span></button></div>
+    ${it.link?`<button class="watch" data-link="${esc(it.link)}">${it.t==='book'?'Читать':'Смотреть'}</button>`:''}
     <p class="sh-d">${esc(it.desc).split('\n').join('<br>')}</p>
     ${it.k?`<span class="readbtn" data-read="${it.k}">Читать</span><div class="txt" id="txt-${it.k}" data-noop></div>`:''}
   </div>`;
@@ -152,12 +153,13 @@ function render(){
 const refresh = () => { (tab==='me' ? renderMe : renderList)(); if (sheetId) { const y = sheet.scrollTop; openSheet(sheetId); sheet.scrollTop = y; } };
 
 document.addEventListener('click', e=>{
-  const t = e.target.closest('[data-tab],[data-item],[data-edit],[data-done],[data-fav],[data-cat],[data-read],[data-close],[data-noop]');
+  const t = e.target.closest('[data-tab],[data-item],[data-edit],[data-done],[data-fav],[data-cat],[data-read],[data-close],[data-link],[data-noop]');
   if (!t) return;
   if (t.hasAttribute('data-noop')) return;
   buzz();
   const d = t.dataset;
   if (d.close){ closeSheet(); }
+  else if (d.link){ tg && tg.openLink ? tg.openLink(d.link) : window.open(d.link,'_blank'); }
   else if (d.tab){ if (sheetId) closeSheet(); tab=d.tab; editing=false; render(); window.scrollTo(0,0); }
   else if (d.cat){ cat = (cat===d.cat) ? '' : d.cat; renderList(); }
   else if (d.done){
