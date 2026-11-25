@@ -5,7 +5,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 TOKEN = os.environ["BOT_TOKEN"]
 URL = os.environ.get("WEBAPP_URL", "https://zayber.skffmassage.com/")
 ADMIN_ID = int(os.environ.get("ADMIN_ID", "7308147004"))
-DB_PATH = os.environ.get("DB_PATH", "/opt/zayber-bot/users.db")
+DB_PATH = os.environ.get("DB_PATH", "/opt/open-bot/users.db")
 API = f"https://api.telegram.org/bot{TOKEN}/"
 
 db = sqlite3.connect(DB_PATH, check_same_thread=False)

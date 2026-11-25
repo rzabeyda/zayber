@@ -23,28 +23,28 @@ def put(local, remote):
     sftp.put(local, remote)
 
 
-run("mkdir -p /var/www/zayber /opt/zayber-bot")
+run("mkdir -p /var/www/zayber /opt/open-bot")
 for f in os.listdir(os.path.join(ROOT, "web")):
     put(os.path.join(ROOT, "web", f), f"/var/www/zayber/{f}")
-put(os.path.join(ROOT, "bot", "bot.py"), "/opt/zayber-bot/bot.py")
+put(os.path.join(ROOT, "bot", "bot.py"), "/opt/open-bot/bot.py")
 
 if os.environ.get("BOT_TOKEN"):
-    with sftp.open("/etc/zayber.env", "w") as f:
+    with sftp.open("/etc/open_bot.env", "w") as f:
         f.write(f"BOT_TOKEN={os.environ['BOT_TOKEN']}\nWEBAPP_URL=https://{DOMAIN}/\n")
-    run("chmod 600 /etc/zayber.env")
+    run("chmod 600 /etc/open_bot.env")
 
 unit = """[Unit]
-Description=Zayber Telegram bot
+Description=Open Telegram bot
 After=network.target
 [Service]
-EnvironmentFile=/etc/zayber.env
-ExecStart=/usr/bin/python3 /opt/zayber-bot/bot.py
+EnvironmentFile=/etc/open_bot.env
+ExecStart=/usr/bin/python3 /opt/open-bot/bot.py
 Restart=always
 RestartSec=3
 [Install]
 WantedBy=multi-user.target
 """
-with sftp.open("/etc/systemd/system/zayber_bot.service", "w") as f:
+with sftp.open("/etc/systemd/system/open_bot.service", "w") as f:
     f.write(unit)
 
 nginx = f"""server {{
@@ -78,5 +78,5 @@ if "location /api/" not in cur:
     with sftp.open(conf, "w") as f:
         f.write(cur.replace("    location / {", blk + "    location / {", 1))
     run("nginx -t && systemctl reload nginx")
-run("systemctl daemon-reload && systemctl enable zayber_bot && systemctl restart zayber_bot")
-run("sleep 2; systemctl is-active zayber_bot; journalctl -u zayber_bot -n 5 --no-pager")
+run("systemctl daemon-reload && systemctl enable open_bot && systemctl restart open_bot")
+run("sleep 2; systemctl is-active open_bot; journalctl -u open_bot -n 5 --no-pager")
