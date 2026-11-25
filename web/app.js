@@ -23,7 +23,13 @@ const LABEL = {women:['Женщины','255,45,155'],men:['Мужчины','79,1
 const pill = (t, cls='') => { const [n,c] = LABEL[t]; return `<span class="lab ${cls}" style="color:rgb(${c});background:rgba(${c},.13);border-color:rgba(${c},.38)">${n}</span>`; };
 const byMine = (a,b) => (ITEMS[b].mine?1:0) - (ITEMS[a].mine?1:0);
 
-let tab = 'film', q = '', topics = [], profile = {}, editing = false;
+let tab = 'film', q = '', topics = [], profile = {}, editing = false, done = [];
+try { done = JSON.parse(localStorage.getItem('open_done')||'[]'); } catch(e){}
+let fav = [];
+try { fav = JSON.parse(localStorage.getItem('open_fav')||'[]'); } catch(e){}
+function saveFav(){ localStorage.setItem('open_fav', JSON.stringify(fav)); if (tg && tg.initData) api('fav', {fav}).catch(()=>{}); }
+const dkey = id => ITEMS[id].t + ':' + ITEMS[id].title;
+function saveDone(){ localStorage.setItem('open_done', JSON.stringify(done)); if (tg && tg.initData) api('done', {done}).catch(()=>{}); }
 try { profile = JSON.parse(localStorage.getItem('open_profile')||'{}'); } catch(e){}
 try { topics = JSON.parse(localStorage.getItem('open_topics')||'[]').filter(t=>TOPIC[t]); } catch(e){}
 
@@ -43,7 +49,8 @@ function itemRow(id){
   const sub = [it.author, it.year].filter(Boolean).join(' · ');
   const main = it.tags.find(t=>topics.includes(t)) || it.tags[0];
   const all = it.tags.map(t=>pill(t)).join('');
-  return `<button class="row" data-item="${id}"><div class="head"><div class="ttl"><b>${esc(it.title)}</b><small>${esc(sub)}</small></div>${main?pill(main):''}</div>
+  const isDone = done.includes(dkey(id));
+  return `<button class="row ${isDone?'seen':''}" data-item="${id}"><div class="head"><span class="chk ${isDone?'on':''}" data-done="${id}"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div class="ttl"><b>${esc(it.title)}</b><small>${esc(sub)}</small></div>${main?pill(main):''}<span class="heart ${fav.includes(dkey(id))?'on':''}" data-fav="${id}"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/></svg></span></div>
     <div class="desc">${esc(it.desc)}${all?`<div class="tags">${all}</div>`:''}</div></button>`;
 }
 
@@ -79,10 +86,14 @@ function renderMe(){
     : `<button class="profile" data-edit="1"><div class="avatar" ${av}>${u.photo_url?'':esc(name[0]||'?')}</div><div style="text-align:left"><b>${esc(name)}</b><div class="hint">${esc(meta || (u.username?'@'+u.username:''))}</div></div></button>`;
   const chip = (p,on) => `<button class="chip ${on?'on':''}" data-topic="${p.id}">${esc(p.title)}</button>`;
   const mine = PROBLEMS.filter(p=>topics.includes(p.id)), other = PROBLEMS.filter(p=>!topics.includes(p.id));
+  const keyToId = Object.fromEntries(Object.keys(ITEMS).map(id=>[dkey(id),id]));
+  const favItems = fav.map(k=>keyToId[k]).filter(Boolean), doneItems = done.map(k=>keyToId[k]).filter(Boolean);
   app.innerHTML = `${head}
   <h2>Что меня беспокоит</h2>
   ${mine.length ? `<div class="chips">${mine.map(p=>chip(p,true)).join('')}</div>` : '<div class="hint">Пока ничего не выбрано</div>'}
   ${other.length ? `<h2>Добавить ещё</h2><div class="chips">${other.map(p=>chip(p,false)).join('')}</div>` : ''}
+  ${favItems.length ? `<h2>Избранное</h2>${favItems.map(itemRow).join('')}` : ''}
+  ${doneItems.length ? `<h2>Просмотрено и прочитано <span class="hint">${doneItems.length}</span></h2>${doneItems.map(itemRow).join('')}` : ''}
   ${mine.length ? `<h2>Что делать</h2>` + mine.map(p=>`<div class="sec">${esc(p.title)}</div>${p.steps.map((s,i)=>`<div class="step"><i>${i+1}</i><span>${esc(s)}</span></div>`).join('')}`).join('') : ''}`;
 }
 
@@ -144,10 +155,24 @@ function render(){
 }
 
 document.addEventListener('click', e=>{
-  const t = e.target.closest('[data-tab],[data-item],[data-topic],[data-edit]');
+  const t = e.target.closest('[data-tab],[data-item],[data-topic],[data-edit],[data-done],[data-fav]');
   if (!t) return;
   buzz();
   if (t.dataset.tab){ tab=t.dataset.tab; editing=false; render(); window.scrollTo(0,0); }
+  else if (t.dataset.done){
+    const id = t.dataset.done, k = dkey(id), i = done.indexOf(k);
+    i < 0 ? done.push(k) : done.splice(i,1);
+    saveDone();
+    t.classList.toggle('on', i < 0);
+    t.closest('.row').classList.toggle('seen', i < 0);
+  }
+  else if (t.dataset.fav){
+    const id = t.dataset.fav, k = dkey(id), i = fav.indexOf(k);
+    i < 0 ? fav.push(k) : fav.splice(i,1);
+    saveFav();
+    t.classList.toggle('on', i < 0);
+    if (tab==='me') renderMe();
+  }
   else if (t.dataset.edit){ editing = true; renderMe(); bindEdit(); }
   else if (t.dataset.item){ t.classList.toggle('open'); }
   else if (t.dataset.topic){
@@ -164,6 +189,8 @@ document.addEventListener('click', e=>{
       const j = await r.json();
       if (r.ok){
         topics = (j.topics||[]).filter(t=>TOPIC[t]);
+        fav = j.fav || fav; localStorage.setItem('open_fav', JSON.stringify(fav));
+        done = j.done || done; localStorage.setItem('open_done', JSON.stringify(done));
         profile = {name:j.name, age:j.age, country:j.country}; localStorage.setItem('open_profile', JSON.stringify(profile));
         localStorage.setItem('open_topics', JSON.stringify(topics));
         if (!j.registered) return renderOnboarding();

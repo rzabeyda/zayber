@@ -45,3 +45,15 @@ h2{margin:24px 0 10px;font-size:19px;font-weight:800}
 .profile{width:100%;text-align:left}
 .profile.edit{display:block}
 .btn.ghost{background:transparent;color:#fff;border:1px solid var(--line);margin-top:10px}
+.row .head{align-items:center}
+.chk{flex:none;width:28px;height:28px;border-radius:50%;border:2px solid #555;display:grid;place-items:center;align-self:center}
+.chk svg{width:16px;height:16px;fill:none;stroke:#000;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.chk.on{background:#fff;border-color:#fff}
+.chk.on svg{opacity:1}
+.row .ttl{flex:1}
+.row.seen b,.row.seen small{opacity:.45}
+.heart{flex:none;width:28px;height:28px;display:grid;place-items:center;color:#777}
+.heart svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
+.heart.on{color:#ff2d9b}
+.heart.on svg{fill:currentColor}
+.row .head{gap:10px}

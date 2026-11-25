@@ -18,6 +18,10 @@ if "city" not in _cols:
 if "country" not in _cols:
     db.execute("ALTER TABLE users ADD COLUMN country TEXT")
     db.execute("UPDATE users SET country=city WHERE country IS NULL")
+if "fav" not in _cols:
+    db.execute("ALTER TABLE users ADD COLUMN fav TEXT DEFAULT '[]'")
+if "done" not in _cols:
+    db.execute("ALTER TABLE users ADD COLUMN done TEXT DEFAULT '[]'")
 if "topics" not in _cols:
     db.execute("ALTER TABLE users ADD COLUMN topics TEXT DEFAULT '[]'")
 db.commit()
@@ -112,9 +116,22 @@ class Api(BaseHTTPRequestHandler):
             return self.reply({"error": "auth"}, 403)
         state = get_user(user)
         if self.path.endswith("/me"):
-            row = db.execute("SELECT topics,name,age,country FROM users WHERE tg_id=?", (user["id"],)).fetchone()
+            row = db.execute("SELECT topics,name,age,country,done,fav FROM users WHERE tg_id=?", (user["id"],)).fetchone()
             return self.reply({"registered": state == "done", "topics": json.loads(row[0] or "[]"),
-                               "name": row[1], "age": row[2], "country": row[3]})
+                               "name": row[1], "age": row[2], "country": row[3],
+                               "done": json.loads(row[4] or "[]"), "fav": json.loads(row[5] or "[]")})
+        if self.path.endswith("/fav"):
+            t = data.get("fav")
+            if not isinstance(t, list) or len(t) > 1000 or not all(isinstance(x, str) and len(x) <= 120 for x in t):
+                return self.reply({"error": "invalid"}, 400)
+            set_field(user["id"], fav=json.dumps(t, ensure_ascii=False))
+            return self.reply({"ok": True})
+        if self.path.endswith("/done"):
+            t = data.get("done")
+            if not isinstance(t, list) or len(t) > 1000 or not all(isinstance(x, str) and len(x) <= 120 for x in t):
+                return self.reply({"error": "invalid"}, 400)
+            set_field(user["id"], done=json.dumps(t, ensure_ascii=False))
+            return self.reply({"ok": True})
         if self.path.endswith("/topics"):
             t = data.get("topics")
             if not isinstance(t, list) or len(t) > 30 or not all(isinstance(x, str) and len(x) <= 30 for x in t):
