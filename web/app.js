@@ -28,6 +28,7 @@ try { done = JSON.parse(localStorage.getItem('open_done')||'[]'); } catch(e){}
 let fav = [];
 try { fav = JSON.parse(localStorage.getItem('open_fav')||'[]'); } catch(e){}
 function saveFav(){ localStorage.setItem('open_fav', JSON.stringify(fav)); if (tg && tg.initData) api('fav', {fav}).catch(()=>{}); }
+let sortKey = localStorage.getItem('open_sk') || '', sortDir = +(localStorage.getItem('open_sd') || 1);
 const dkey = id => ITEMS[id].t + ':' + ITEMS[id].title;
 function saveDone(){ localStorage.setItem('open_done', JSON.stringify(done)); if (tg && tg.initData) api('done', {done}).catch(()=>{}); }
 try { profile = JSON.parse(localStorage.getItem('open_profile')||'{}'); } catch(e){}
@@ -55,6 +56,18 @@ function itemRow(id){
 }
 
 // ---------- вкладки каталога ----------
+function ordered(ids){
+  if (!sortKey) return ids;
+  const cmp = sortKey==='year'
+    ? (a,b)=>{ const x=ITEMS[a].year, y=ITEMS[b].year; if(!x&&!y) return 0; if(!x) return 1; if(!y) return -1; return (x-y)*sortDir; }
+    : (a,b)=>ITEMS[a].title.localeCompare(ITEMS[b].title,'ru')*sortDir;
+  return [...ids].sort(cmp);
+}
+function sortBar(){
+  const arrow = sortDir===1 ? '↑' : '↓';
+  const yr = sortKey==='year', nm = sortKey==='title';
+  return `<div class="sortbar"><button class="sbtn ${yr?'on':''}" data-sort="year">Год${yr?' '+arrow:''}</button><button class="sbtn ${nm?'on':''}" data-sort="title">${nm&&sortDir===-1?'Я → А':'А → Я'}</button></div>`;
+}
 function renderList(){
   const all = Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab);
   let html;
@@ -63,13 +76,13 @@ function renderList(){
     const mine = all.filter(id=>score(id)>0).sort((a,b)=>score(b)-score(a) || byMine(a,b));
     const rest = all.filter(id=>score(id)===0).sort(byMine);
     if (topics.length){
-      html = mine.length ? `<div class="sec">Подобрано для тебя</div>${mine.map(itemRow).join('')}`
+      html = mine.length ? `<div class="sec">Подобрано для тебя</div>${ordered(mine).map(itemRow).join('')}`
                          : '<div class="empty">Пока нет подборки по твоим темам.<br>Добавь ещё темы в профиле.</div>';
     } else {
-      html = rest.length ? rest.map(itemRow).join('') : '<div class="empty">Пока пусто</div>';
+      html = rest.length ? ordered(rest).map(itemRow).join('') : '<div class="empty">Пока пусто</div>';
     }
   }
-  app.innerHTML = `<div class="top-gap"></div>${html}`;
+  app.innerHTML = `<div class="top-gap"></div>${sortBar()}${html}`;
 }
 
 // ---------- профиль ----------
@@ -155,7 +168,7 @@ function render(){
 }
 
 document.addEventListener('click', e=>{
-  const t = e.target.closest('[data-tab],[data-item],[data-topic],[data-edit],[data-done],[data-fav]');
+  const t = e.target.closest('[data-tab],[data-item],[data-topic],[data-edit],[data-done],[data-fav],[data-sort]');
   if (!t) return;
   buzz();
   if (t.dataset.tab){ tab=t.dataset.tab; editing=false; render(); window.scrollTo(0,0); }
@@ -165,6 +178,12 @@ document.addEventListener('click', e=>{
     saveDone();
     t.classList.toggle('on', i < 0);
     t.closest('.row').classList.toggle('seen', i < 0);
+  }
+  else if (t.dataset.sort){
+    const k = t.dataset.sort;
+    if (sortKey===k) sortDir = -sortDir; else { sortKey = k; sortDir = 1; }
+    localStorage.setItem('open_sk', sortKey); localStorage.setItem('open_sd', sortDir);
+    renderList();
   }
   else if (t.dataset.fav){
     const id = t.dataset.fav, k = dkey(id), i = fav.indexOf(k);
