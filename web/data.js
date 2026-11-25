@@ -7,6 +7,8 @@ window.PROBLEMS = [
     {id:"socio", title:"Социофобия", short:"Социофобия"},
     {id:"camera", title:"Страх камеры", short:"Страх камеры"},
     {id:"society", title:"Страх общества", short:"Страх общества"},
+    {id:"fwomen", title:"Страх женщин", short:"Страх женщин", color:"255,45,155"},
+    {id:"fmen", title:"Страх мужчин", short:"Страх мужчин", color:"79,195,247"},
     {id:"loneliness", title:"Страх одиночества", short:"Одиночество"},
     {id:"fight", title:"Страх драки", short:"Страх драки"},
     {id:"future", title:"Страх будущего", short:"Страх будущего"},
