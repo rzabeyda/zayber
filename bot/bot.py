@@ -60,7 +60,7 @@ def app_btn(text, p=None):
 
 
 def kb_main():
-    return {"inline_keyboard": [[app_btn("Открыть Open")]]}
+    return {"inline_keyboard": [[app_btn("Open")]]}
 
 
 PROBLEMS = [("fight", "Страх драться"), ("people", "Боюсь людей"), ("women", "Страх женщин"),
@@ -182,7 +182,7 @@ def run_api():
 
 def setup():
     call("setChatMenuButton", menu_button={"type": "web_app", "text": "Open", "web_app": {"url": URL}})
-    call("setMyCommands", commands=[{"command": "start", "description": "Открыть Open"},
+    call("setMyCommands", commands=[{"command": "start", "description": "Open"},
                                     {"command": "problems", "description": "Выбрать тему, что тревожит"}])
     call("setMyDescription", description="Навигатор по жизни: выбери, что тревожит — получи шаги, фильмы, сериалы и книги, которые прокачают нужные качества.")
 

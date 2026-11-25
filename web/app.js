@@ -48,7 +48,7 @@ function renderHome(){
         return `<button class="row" data-quality="${k}"><span class="ic">${ico(k)}</span><div class="mid"><b>${q.title}</b><small>${q.desc}</small></div><small>${total}</small></button>`;
       }).join('');
   }
-  app.innerHTML = `<div class="top"><h1>Open</h1></div>${seg}${body}`;
+  app.innerHTML = `<div class="top"><h1>Главная</h1></div>${seg}${body}`;
 }
 
 function renderProblem(p){
