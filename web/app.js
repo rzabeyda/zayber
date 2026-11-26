@@ -72,7 +72,7 @@ function ordered(ids){
 function sortBtns(){
   const arrow = sortDir===1 ? '<svg viewBox="0 0 12 12"><path d="M2.5 7.5L6 4l3.5 3.5"/></svg>' : '<svg viewBox="0 0 12 12"><path d="M2.5 4.5L6 8l3.5-3.5"/></svg>';
   const b = (k,txt)=>`<button class="sq ${sortKey===k?'on':''}" data-sort="${k}">${txt}${sortKey===k?`<i>${arrow}</i>`:''}</button>`;
-  return `<div class="sorts">${b('title','АБВ')}${b('year','Год')}<div class="geo2"><button class="${geo==='ru'?'on':''}" data-geo="ru" aria-label="Русские"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="4" fill="#fff"/><rect x="3" y="10" width="18" height="4" fill="#1c57a5"/><rect x="3" y="14" width="18" height="4" fill="#d52b1e"/><rect x="3" y="6" width="18" height="12" rx="1.5" fill="none" stroke="#777" stroke-width="1"/></svg></button><button class="${geo==='world'?'on':''}" data-geo="world" aria-label="Зарубежные"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#1f7ae0"/><path d="M6 8c2-2 4-1 5 0s0 3-2 3-2 2-1 3-2 1-3-1-1-4 1-5zM14 5c2 0 4 1 5 3-1 1-3 0-4 1s-2 0-2-2 0-2 1-2zM15 13c2-1 4 0 4 2s-2 4-4 4-2-4 0-6z" fill="#3fbf6f"/><circle cx="12" cy="12" r="9" fill="none" stroke="#8fc4ff" stroke-width="1"/></svg></button></div></div>`;
+  return `<div class="sorts">${b('title','АБВ')}${b('year','Год')}<button class="sq geo ${geo?'on':''}" data-geo="1" aria-label="Русские или зарубежные">${geo==='world' ? '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#1f7ae0"/><path d="M6 8c2-2 4-1 5 0s0 3-2 3-2 2-1 3-2 1-3-1-1-4 1-5zM14 5c2 0 4 1 5 3-1 1-3 0-4 1s-2 0-2-2 0-2 1-2zM15 13c2-1 4 0 4 2s-2 4-4 4-2-4 0-6z" fill="#3fbf6f"/><circle cx="12" cy="12" r="9" fill="none" stroke="#8fc4ff" stroke-width="1"/></svg>' : '<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="4" fill="#fff"/><rect x="3" y="10" width="18" height="4" fill="#1c57a5"/><rect x="3" y="14" width="18" height="4" fill="#d52b1e"/><rect x="3" y="6" width="18" height="12" rx="1.5" fill="none" stroke="#777" stroke-width="1"/></svg>'}</button></div>`;
 }
 function listIds(){
   const qq = q.trim().toLowerCase();
@@ -236,7 +236,7 @@ document.addEventListener('click', e=>{
     renderList();
   }
   else if (d.share){ const it = ITEMS[d.share]; const url = 'https://t.me/zayberman_bot?startapp=' + slug(it.title); const text = it.title + (it.year ? ' ('+it.year+')' : ''); const link = 'https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(text); tg && tg.openTelegramLink ? tg.openTelegramLink(link) : window.open(link,'_blank'); }
-  else if (d.geo){ geo = (geo===d.geo) ? '' : d.geo; localStorage.setItem('open_geo', geo); renderList(); }
+  else if (d.geo){ geo = geo==='' ? 'ru' : geo==='ru' ? 'world' : ''; localStorage.setItem('open_geo', geo); renderList(); }
   else if (d.th){ th = (th===d.th) ? '' : d.th; renderList(); }
   else if (d.bf){ bf = d.bf; localStorage.setItem('open_bf', bf); renderList(); }
   else if (d.gf){ gf = d.gf; localStorage.setItem('open_gf', gf); renderList(); }

@@ -194,10 +194,5 @@ body.lock #totop{display:none}
 .sq.geo svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round}
 .sq.geo.on svg{color:#000}
 
-.tophead{flex-wrap:wrap;gap:10px}
-.sorts{display:flex;gap:8px;align-items:center}
-.geo2{display:flex;border:1.5px solid rgba(255,255,255,.4);border-radius:12px;overflow:hidden;background:#0b0b0b;height:42px}
-.geo2 button{width:42px;height:100%;display:grid;place-items:center;background:transparent;border:0;padding:0}
-.geo2 button+button{border-left:1.5px solid rgba(255,255,255,.25)}
-.geo2 button.on{background:#fff}
-.geo2 svg{width:24px;height:24px}
+.sq.geo svg{width:24px;height:24px}
+.sq.geo.on svg rect[stroke]{stroke:#444}
