@@ -21,7 +21,7 @@ const CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
 let sortKey = localStorage.getItem('open_sk') || '', sortDir = +(localStorage.getItem('open_sd') || 1);
 let gf = localStorage.getItem('open_gf') || 'all';
 let bf = localStorage.getItem('open_bf') || 'all';
-const SACRED = ['Библия. Новый Завет','Коран','Тора'];
+const SACRED = ['Библия. Новый Завет','Библия. Ветхий Завет','Коран','Тора','Танах','Талмуд','Трипитака','Веды'];
 let tab = 'film', cat = '', profile = {}, editing = false, done = [], fav = [], sheetId = null, curList = [];
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)||d); } catch(e){ return JSON.parse(d); } };
 profile = load('open_profile', '{}'); done = load('open_done', '[]'); fav = load('open_fav', '[]');
