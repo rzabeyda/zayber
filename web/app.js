@@ -77,7 +77,8 @@ function sortBtns(){
 function listIds(){
   const qq = q.trim().toLowerCase();
   if (qq) return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (ITEMS[id].title+' '+(ITEMS[id].author||'')+' '+(ITEMS[id].alt||'')).toLowerCase().includes(qq)));
-  return ordered(Object.keys(ITEMS).filter(id=>(!geo || (geo==='ru') === !!ITEMS[id].ru) && ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (tab==='book' ? (bf==='all' || (bf==='sacred') === SACRED.includes(ITEMS[id].title)) : (gf==='all' || (gf==='grow' ? !ITEMS[id].c : !!ITEMS[id].c)))).filter(id=>!q || (ITEMS[id].title+' '+(ITEMS[id].author||'')).toLowerCase().includes(q.toLowerCase())).filter(id=>!th || (ITEMS[id].th||[]).includes(th)));
+  if (geo) return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (geo==='ru') === !!ITEMS[id].ru));
+  return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (tab==='book' ? (bf==='all' || (bf==='sacred') === SACRED.includes(ITEMS[id].title)) : (gf==='all' || (gf==='grow' ? !ITEMS[id].c : !!ITEMS[id].c)))).filter(id=>!q || (ITEMS[id].title+' '+(ITEMS[id].author||'')).toLowerCase().includes(q.toLowerCase())).filter(id=>!th || (ITEMS[id].th||[]).includes(th)));
 }
 function renderList(){
   const bar = !SHOW_LABELS ? '' : `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
