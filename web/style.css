@@ -166,3 +166,5 @@ body.lock #totop{display:none}
 .gf{flex:1;height:38px;border-radius:12px;border:1.5px solid rgba(255,255,255,.4);background:#0b0b0b;color:#e8e8e8;font-weight:900;font-size:14px;box-shadow:0 0 8px rgba(255,255,255,.1)}
 .gf.on{background:#fff;color:#000;border-color:#fff}
 .gfs+.tophead{padding-top:14px}
+
+.gf svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}

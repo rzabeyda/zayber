@@ -74,8 +74,8 @@ function renderList(){
   const bar = !SHOW_LABELS ? '' : `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
   const ids = ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (gf==='all' || (gf==='grow') === !!ITEMS[id].g)));
   curList = ids;
-  const gb = (k,txt)=>`<button class="gf ${gf===k?'on':''}" data-gf="${k}">${txt}</button>`;
-  const gbar = `<div class="gfs">${gb('all','Все')}${gb('grow','Ранг')}${gb('relax','Релакс')}</div>`;
+  const gb = (k,txt)=>`<button class="gf ${gf===k?'on':''}" data-gf="${k}" aria-label="${k==='grow'?'Ранг':k==='relax'?'Релакс':'Все'}">${txt}</button>`;
+  const gbar = `<div class="gfs">${gb('all','Все')}${gb('grow','<svg viewBox="0 0 24 24"><path d="M5 11l7-6 7 6M5 17l7-6 7 6M5 23l7-6 7 6" transform="translate(0 -3)"/></svg>')}${gb('relax','<svg viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.8 6.8 0 0 0 10.5 10.5z"/></svg>')}</div>`;
   app.innerHTML = `${gbar}<div class="tophead"><div class="toptitle">${gf==='relax'?'Расслабься':'Повышаем ранг'}</div>${sortBtns()}</div>${bar}${ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Пока пусто</div>'}`;
   fitTitles(app);
 }
