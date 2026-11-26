@@ -190,3 +190,6 @@ body.lock #totop{display:none}
 
 .srow+.gfs{padding-top:12px}
 .srow{padding-top:14px}
+
+.sq.geo svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round}
+.sq.geo.on svg{color:#000}
