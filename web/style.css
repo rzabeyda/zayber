@@ -201,3 +201,6 @@ body.lock #totop{display:none}
 .sq.geo svg{opacity:.55}
 .sq.geo.on{background:transparent;border:0}
 .sq.geo.on svg{opacity:1;filter:drop-shadow(0 0 6px rgba(255,255,255,.7))}
+
+.sq.geo{width:42px}
+.sq.geo svg{width:30px;height:30px}
