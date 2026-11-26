@@ -84,7 +84,7 @@ function renderList(){
   const bar = !SHOW_LABELS ? '' : `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
   const ids = listIds();
   curList = ids;
-  const gb = (k,txt)=>`<button class="gf ${gf===k?'on':''}" data-gf="${k}" aria-label="${k==='grow'?'Ранг':k==='relax'?'Релакс':'Все'}">${txt}</button>`;
+  const gb = (k,txt)=>`<button class="gf ${gf===k&&!geo?'on':''}" data-gf="${k}" aria-label="${k==='grow'?'Ранг':k==='relax'?'Релакс':'Все'}">${txt}</button>`;
   const bb = (k,txt,l)=>`<button class="gf ${bf===k?'on':''}" data-bf="${k}" aria-label="${l}">${txt}</button>`;
   const bbar = `<div class="gfs">${bb('all','Все','Все')}${bb('sacred','<svg class="tri" viewBox="0 0 66 22"><path d="M11 2v18M5 8h12"/><path d="M38 3a8 8 0 1 0 0 16a6.4 6.4 0 0 1 0-16z"/><path d="M55 3l7 12H48zM55 19L48 7h14z"/></svg>','Священные писания')}${bb('other','<svg viewBox="0 0 24 24"><path d="M5 4h4v16H5zM10 7h4v13h-4zM15.5 5l3.8-.8 2.7 15.6-3.8.8zM3 21h18"/></svg>','Все кроме священных писаний')}</div>`;
   const gbar0 = `<div class="gfs">${gb('all','Все')}${gb('grow','<svg viewBox="0 0 24 24"><path d="M5 11l7-6 7 6M5 17l7-6 7 6M5 23l7-6 7 6" transform="translate(0 -3)"/></svg>')}${gb('relax','<svg viewBox="0 0 24 24"><path d="M12 4c3 3 3.6 6.6 0 11-3.6-4.4-3-8 0-11zM12 15c-1.2-4-5-6.2-9.5-5.2.2 4.4 4.2 7.2 9.5 5.2zM12 15c1.2-4 5-6.2 9.5-5.2-.2 4.4-4.2 7.2-9.5 5.2zM6 19.5h12"/></svg>')}</div>`;
@@ -237,10 +237,10 @@ document.addEventListener('click', e=>{
     renderList();
   }
   else if (d.share){ const it = ITEMS[d.share]; const url = 'https://t.me/zayberman_bot?startapp=' + slug(it.title); const text = it.title + (it.year ? ' ('+it.year+')' : ''); const link = 'https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(text); tg && tg.openTelegramLink ? tg.openTelegramLink(link) : window.open(link,'_blank'); }
-  else if (d.geo){ geo = geo==='' ? 'ru' : geo==='ru' ? 'world' : ''; localStorage.setItem('open_geo', geo); renderList(); }
+  else if (d.geo){ geo = geo==='' ? 'ru' : geo==='ru' ? 'world' : ''; if (geo){ gf = 'all'; localStorage.setItem('open_gf','all'); } localStorage.setItem('open_geo', geo); renderList(); }
   else if (d.th){ th = (th===d.th) ? '' : d.th; renderList(); }
   else if (d.bf){ bf = d.bf; localStorage.setItem('open_bf', bf); renderList(); }
-  else if (d.gf){ gf = d.gf; localStorage.setItem('open_gf', gf); renderList(); }
+  else if (d.gf){ gf = d.gf; geo = ''; localStorage.setItem('open_geo',''); localStorage.setItem('open_gf', gf); renderList(); }
   else if (d.cat){ cat = (cat===d.cat) ? '' : d.cat; renderList(); }
   else if (d.done){
     const k = dkey(d.done), i = done.indexOf(k);
