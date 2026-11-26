@@ -172,3 +172,18 @@ body.lock #totop{display:none}
 .gf svg.tri{width:58px;height:20px}
 
 .tcnt{display:inline-block;margin-left:6px;font-size:14px;font-weight:800;color:#999;vertical-align:middle}
+
+.srow{display:flex;gap:8px;align-items:center;padding-top:12px}
+.srow .search{margin:0;flex:1;padding:11px 16px;border-radius:14px;font-size:15px}
+.rnd{width:46px;height:46px;border-radius:14px;border:1.5px solid rgba(255,255,255,.4);background:#0b0b0b;color:#e8e8e8;display:grid;place-items:center;flex:none}
+.rnd svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8}
+.ths{display:flex;gap:8px;overflow-x:auto;padding:10px 0 0;scrollbar-width:none}
+.ths::-webkit-scrollbar{display:none}
+.thc{flex:none;padding:8px 14px;border-radius:999px;border:1.5px solid rgba(255,255,255,.35);background:#0b0b0b;color:#e8e8e8;font-weight:800;font-size:13px}
+.thc.on{background:#fff;color:#000;border-color:#fff}
+.watch.share{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);margin-top:10px}
+.prog{margin:4px 0 18px}
+.prog-t{display:flex;justify-content:space-between;font-size:14px;margin-bottom:8px}
+.prog-t span{color:#bbb;font-weight:800}
+.prog-b{height:8px;border-radius:99px;background:#1a1a1a;overflow:hidden}
+.prog-b i{display:block;height:100%;background:#39ff88;box-shadow:0 0 10px rgba(57,255,136,.6)}

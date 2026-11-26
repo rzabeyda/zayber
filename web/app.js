@@ -10,7 +10,7 @@ const buzz = () => { try{ tg && tg.HapticFeedback.impactOccurred('light'); }catc
 const CATS = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
 const catOf = t => CATS[String(t).split('.')[0]];
 const ITEMS = {};
-(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, g:x.g, c:x.c, k:x.k, cover:x.cover, link:x.link}; });
+(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, g:x.g, c:x.c, th:x.th||[], link:x.link, k:x.k, cover:x.cover, link:x.link}; });
 const dkey = id => ITEMS[id].t + ':' + ITEMS[id].title;
 const SHOW_LABELS = false; // метки Ранг/Страх/Женщины временно выключены
 const pill = key => { if (!SHOW_LABELS) return ''; const c = catOf(key); return `<span class="lab" style="color:rgb(${c.color});background:rgba(${c.color},.13);border-color:rgba(${c.color},.38)">${esc(c.title)}</span>`; };
@@ -20,6 +20,7 @@ const CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
 // ---------- состояние ----------
 let sortKey = localStorage.getItem('open_sk') || '', sortDir = +(localStorage.getItem('open_sd') || 1);
 let gf = localStorage.getItem('open_gf') || 'all';
+let q = '', th = '';
 let bf = localStorage.getItem('open_bf') || 'all';
 const SACRED = ['Библия. Новый Завет','Библия. Ветхий Завет','Коран','Тора','Танах','Талмуд','Трипитака','Веды'];
 let tab = 'film', cat = '', profile = {}, editing = false, done = [], fav = [], sheetId = null, curList = [];
@@ -72,18 +73,28 @@ function sortBtns(){
   const b = (k,txt)=>`<button class="sq ${sortKey===k?'on':''}" data-sort="${k}">${txt}${sortKey===k?`<i>${arrow}</i>`:''}</button>`;
   return `<div class="sorts">${b('title','АБВ')}${b('year','Год')}</div>`;
 }
+function listIds(){
+  return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (tab==='book' ? (bf==='all' || (bf==='sacred') === SACRED.includes(ITEMS[id].title)) : (gf==='all' || (gf==='grow' ? !ITEMS[id].c : !!ITEMS[id].c)))).filter(id=>!q || (ITEMS[id].title+' '+(ITEMS[id].author||'')).toLowerCase().includes(q.toLowerCase())).filter(id=>!th || (ITEMS[id].th||[]).includes(th)));
+}
 function renderList(){
   const bar = !SHOW_LABELS ? '' : `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
-  const ids = ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (tab==='book' ? (bf==='all' || (bf==='sacred') === SACRED.includes(ITEMS[id].title)) : (gf==='all' || (gf==='grow' ? !ITEMS[id].c : !!ITEMS[id].c)))));
+  const ids = listIds();
   curList = ids;
   const gb = (k,txt)=>`<button class="gf ${gf===k?'on':''}" data-gf="${k}" aria-label="${k==='grow'?'Ранг':k==='relax'?'Релакс':'Все'}">${txt}</button>`;
   const bb = (k,txt,l)=>`<button class="gf ${bf===k?'on':''}" data-bf="${k}" aria-label="${l}">${txt}</button>`;
   const bbar = `<div class="gfs">${bb('all','Все','Все')}${bb('sacred','<svg class="tri" viewBox="0 0 66 22"><path d="M11 2v18M5 8h12"/><path d="M38 3a8 8 0 1 0 0 16a6.4 6.4 0 0 1 0-16z"/><path d="M55 3l7 12H48zM55 19L48 7h14z"/></svg>','Священные писания')}${bb('other','<svg viewBox="0 0 24 24"><path d="M5 4h4v16H5zM10 7h4v13h-4zM15.5 5l3.8-.8 2.7 15.6-3.8.8zM3 21h18"/></svg>','Все кроме священных писаний')}</div>`;
   const gbar0 = `<div class="gfs">${gb('all','Все')}${gb('grow','<svg viewBox="0 0 24 24"><path d="M5 11l7-6 7 6M5 17l7-6 7 6M5 23l7-6 7 6" transform="translate(0 -3)"/></svg>')}${gb('relax','<svg viewBox="0 0 24 24"><path d="M12 4c3 3 3.6 6.6 0 11-3.6-4.4-3-8 0-11zM12 15c-1.2-4-5-6.2-9.5-5.2.2 4.4 4.2 7.2 9.5 5.2zM12 15c1.2-4 5-6.2 9.5-5.2-.2 4.4-4.2 7.2-9.5 5.2zM6 19.5h12"/></svg>')}</div>`;
   const gbar = tab==='book' ? bbar : gbar0;
-  app.innerHTML = `${gbar}<div class="tophead"><div class="toptitle">${tab!=='book'&&gf==='relax'?'Расслабься':'Повышаем ранг'} <span class="tcnt">${ids.length}</span></div>${sortBtns()}</div>${bar}${ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Пока пусто</div>'}`;
+  const TH = [['fear','Страх'],['money','Деньги'],['discipline','Дисциплина'],['women','Женщины']];
+  const thbar = `<div class="ths">${TH.map(([k,t])=>`<button class="thc ${th===k?'on':''}" data-th="${k}">${t}</button>`).join('')}</div>`;
+  app.innerHTML = `${gbar}<div class="srow"><input class="search" id="q" placeholder="Поиск" value="${esc(q)}" autocomplete="off"><button class="rnd" id="rnd" aria-label="Случайный выбор"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4"/><circle cx="9" cy="9" r="1.3"/><circle cx="15" cy="15" r="1.3"/><circle cx="15" cy="9" r="1.3"/><circle cx="9" cy="15" r="1.3"/></svg></button></div>${thbar}<div class="tophead"><div class="toptitle">${tab!=='book'&&gf==='relax'?'Расслабься':'Повышаем ранг'} <span class="tcnt" id="tc">${ids.length}</span></div>${sortBtns()}</div>${bar}<div id="gridbox">${gridHtml(ids)}</div>`;
   fitTitles(app);
+  const qi = $('#q');
+  if (qi) qi.oninput = () => { q = qi.value; const l = listIds(); curList = l; $('#gridbox').innerHTML = gridHtml(l); $('#tc').textContent = l.length; fitTitles($('#gridbox')); };
+  const rb = $('#rnd');
+  if (rb) rb.onclick = () => { const l = listIds(); if (l.length) openSheet(l[Math.floor(Math.random()*l.length)]); };
 }
+function gridHtml(ids){ return ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Ничего не найдено</div>'; }
 
 // ---------- страница фильма/книги ----------
 function openSheet(id){
@@ -96,9 +107,10 @@ function openSheet(id){
     <div class="hint">${esc(subOf(it))}</div>
     <div class="tags" style="margin-top:12px">${it.tags.map(pill).join('')}</div>
     <div class="sh-actions"><button class="sact ${isDone?'on':''}" data-done="${id}">${CHECK}<span>${isDone?(it.t==='book'?'Прочитано':'Просмотрено'):'Отметить'}</span></button><button class="sact ${isFav?'on fav':''}" data-fav="${id}">${HEART}<span>${isFav?'В избранном':'В избранное'}</span></button></div>
-    ${it.link?`<button class="watch" data-link="${esc(it.link)}">${it.t==='book'?'Читать':'Смотреть'}</button>`:''}
+    <button class="watch share" data-share="${id}">Поделиться</button>
     <p class="sh-d">${esc(it.desc).split('\n').join('<br>')}</p>
     ${it.k?`<span class="readbtn" data-read="${it.k}">Читать</span><div class="txt" id="txt-${it.k}" data-noop></div>`:''}
+    ${it.link?`<button class="watch" data-link="${esc(it.link)}">${it.t==='book'?'Читать':'Смотреть'}</button>`:''}
     <button class="closebtn" data-close="1">Закрыть</button>
   </div>`;
   sheet.classList.add('open'); sheet.scrollTop = 0; document.body.classList.add('lock');
@@ -136,6 +148,10 @@ function closeSheet(){
 }
 
 // ---------- профиль ----------
+function progHtml(){
+  const keys = new Set(Object.keys(ITEMS).map(dkey)); const n = done.filter(k=>keys.has(k)).length, tot = keys.size;
+  return `<div class="prog"><div class="prog-t"><b>Отмечено</b><span>${n} из ${tot}</span></div><div class="prog-b"><i style="width:${tot?Math.round(n/tot*100):0}%"></i></div></div>`;
+}
 function renderMe(){
   const u = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
   const name = profile.name || [u.first_name,u.last_name].filter(Boolean).join(' ') || 'Гость';
@@ -151,6 +167,7 @@ function renderMe(){
   const favItems = fav.map(k=>keyToId[k]).filter(Boolean);
   curList = favItems;
   app.innerHTML = `${head}
+  ${progHtml()}
   <h2>Избранное</h2>
   ${favItems.length ? `<div class="grid">${favItems.map(itemRow).join('')}</div>` : '<div class="hint">Пока ничего нет</div>'}`;
   fitTitles(app);
@@ -202,7 +219,7 @@ function render(){
 const refresh = () => { (tab==='me' ? renderMe : renderList)(); if (sheetId) { const y = sheet.scrollTop; openSheet(sheetId); sheet.scrollTop = y; } };
 
 document.addEventListener('click', e=>{
-  const t = e.target.closest('[data-tab],[data-item],[data-edit],[data-done],[data-fav],[data-cat],[data-sort],[data-gf],[data-bf],[data-read],[data-close],[data-link],[data-noop]');
+  const t = e.target.closest('[data-tab],[data-item],[data-edit],[data-done],[data-fav],[data-cat],[data-sort],[data-gf],[data-bf],[data-th],[data-share],[data-read],[data-close],[data-link],[data-noop]');
   if (!t) return;
   if (t.hasAttribute('data-noop')) return;
   buzz();
@@ -215,6 +232,8 @@ document.addEventListener('click', e=>{
     localStorage.setItem('open_sk', sortKey); localStorage.setItem('open_sd', sortDir);
     renderList();
   }
+  else if (d.share){ const it = ITEMS[d.share]; const url = 'https://t.me/zayberman_bot'; const text = it.title + (it.year ? ' ('+it.year+')' : '') + ': смотри в Open'; const link = 'https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(text); tg && tg.openTelegramLink ? tg.openTelegramLink(link) : window.open(link,'_blank'); }
+  else if (d.th){ th = (th===d.th) ? '' : d.th; renderList(); }
   else if (d.bf){ bf = d.bf; localStorage.setItem('open_bf', bf); renderList(); }
   else if (d.gf){ gf = d.gf; localStorage.setItem('open_gf', gf); renderList(); }
   else if (d.cat){ cat = (cat===d.cat) ? '' : d.cat; renderList(); }
