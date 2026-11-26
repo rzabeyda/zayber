@@ -74,7 +74,7 @@ function sortBtns(){
 }
 function renderList(){
   const bar = !SHOW_LABELS ? '' : `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
-  const ids = ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (tab==='book' ? (bf==='all' || (bf==='sacred') === SACRED.includes(ITEMS[id].title)) : (gf==='all' || (gf==='grow' ? !!ITEMS[id].g : !!ITEMS[id].c)))));
+  const ids = ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (tab==='book' ? (bf==='all' || (bf==='sacred') === SACRED.includes(ITEMS[id].title)) : (gf==='all' || (gf==='grow' ? !ITEMS[id].c : !!ITEMS[id].c)))));
   curList = ids;
   const gb = (k,txt)=>`<button class="gf ${gf===k?'on':''}" data-gf="${k}" aria-label="${k==='grow'?'Ранг':k==='relax'?'Релакс':'Все'}">${txt}</button>`;
   const bb = (k,txt,l)=>`<button class="gf ${bf===k?'on':''}" data-bf="${k}" aria-label="${l}">${txt}</button>`;
