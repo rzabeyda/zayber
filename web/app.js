@@ -113,7 +113,7 @@ function openSheet(id){
     <button class="watch share" data-share="${id}">Поделиться</button>
     <p class="sh-d">${esc(it.desc).split('\n').join('<br>')}</p>
     ${it.k?`<span class="readbtn" data-read="${it.k}">Читать</span><div class="txt" id="txt-${it.k}" data-noop></div>`:''}
-    ${it.link?`<button class="watch" data-link="${esc(it.link)}">${it.t==='book'?'Читать':'Смотреть'}</button>`:''}
+    ${it.link?`<button class="watch" data-link="${esc(it.link)}">${it.t==='book'?'Читать':'Смотреть'}</button>`:(it.t!=='book'?`<button class="watch" data-link="${esc('https://www.kinopoisk.ru/index.php?kp_query='+encodeURIComponent(it.title+(it.year?' '+it.year:'')))}">Где смотреть</button>`:'')}
     <button class="closebtn" data-close="1">Закрыть</button>
   </div>`;
   sheet.classList.add('open'); sheet.scrollTop = 0; document.body.classList.add('lock');
