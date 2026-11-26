@@ -161,3 +161,8 @@ body.lock{overflow:hidden}
 #totop{position:fixed;right:16px;bottom:calc(86px + env(safe-area-inset-bottom));width:44px;height:44px;border-radius:50%;background:#000;border:1.5px solid #fff;box-shadow:0 0 10px rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;padding:0;z-index:19;opacity:0;pointer-events:none;transition:opacity .2s;cursor:pointer}
 #totop.show{opacity:1;pointer-events:auto}
 body.lock #totop{display:none}
+
+.gfs{display:flex;gap:8px;padding:14px 0 0}
+.gf{flex:1;height:38px;border-radius:12px;border:1.5px solid rgba(255,255,255,.4);background:#0b0b0b;color:#e8e8e8;font-weight:900;font-size:14px;box-shadow:0 0 8px rgba(255,255,255,.1)}
+.gf.on{background:#fff;color:#000;border-color:#fff}
+.gfs+.tophead{padding-top:14px}

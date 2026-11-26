@@ -10,7 +10,7 @@ const buzz = () => { try{ tg && tg.HapticFeedback.impactOccurred('light'); }catc
 const CATS = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
 const catOf = t => CATS[String(t).split('.')[0]];
 const ITEMS = {};
-(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, k:x.k, cover:x.cover, link:x.link}; });
+(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, g:x.g, k:x.k, cover:x.cover, link:x.link}; });
 const dkey = id => ITEMS[id].t + ':' + ITEMS[id].title;
 const SHOW_LABELS = false; // метки Ранг/Страх/Женщины временно выключены
 const pill = key => { if (!SHOW_LABELS) return ''; const c = catOf(key); return `<span class="lab" style="color:rgb(${c.color});background:rgba(${c.color},.13);border-color:rgba(${c.color},.38)">${esc(c.title)}</span>`; };
@@ -19,6 +19,7 @@ const CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
 
 // ---------- состояние ----------
 let sortKey = localStorage.getItem('open_sk') || '', sortDir = +(localStorage.getItem('open_sd') || 1);
+let gf = localStorage.getItem('open_gf') || 'all';
 let tab = 'film', cat = '', profile = {}, editing = false, done = [], fav = [], sheetId = null, curList = [];
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)||d); } catch(e){ return JSON.parse(d); } };
 profile = load('open_profile', '{}'); done = load('open_done', '[]'); fav = load('open_fav', '[]');
@@ -71,9 +72,11 @@ function sortBtns(){
 }
 function renderList(){
   const bar = !SHOW_LABELS ? '' : `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
-  const ids = ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat))));
+  const ids = ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (gf==='all' || (gf==='grow') === !!ITEMS[id].g)));
   curList = ids;
-  app.innerHTML = `<div class="tophead"><div class="toptitle">Повышаем ранг</div>${sortBtns()}</div>${bar}${ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Пока пусто</div>'}`;
+  const gb = (k,txt)=>`<button class="gf ${gf===k?'on':''}" data-gf="${k}">${txt}</button>`;
+  const gbar = `<div class="gfs">${gb('all','Все')}${gb('grow','Рост')}${gb('relax','Релакс')}</div>`;
+  app.innerHTML = `${gbar}<div class="tophead"><div class="toptitle">${gf==='relax'?'Расслабься':'Повышаем ранг'}</div>${sortBtns()}</div>${bar}${ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Пока пусто</div>'}`;
   fitTitles(app);
 }
 
@@ -194,7 +197,7 @@ function render(){
 const refresh = () => { (tab==='me' ? renderMe : renderList)(); if (sheetId) { const y = sheet.scrollTop; openSheet(sheetId); sheet.scrollTop = y; } };
 
 document.addEventListener('click', e=>{
-  const t = e.target.closest('[data-tab],[data-item],[data-edit],[data-done],[data-fav],[data-cat],[data-sort],[data-read],[data-close],[data-link],[data-noop]');
+  const t = e.target.closest('[data-tab],[data-item],[data-edit],[data-done],[data-fav],[data-cat],[data-sort],[data-gf],[data-read],[data-close],[data-link],[data-noop]');
   if (!t) return;
   if (t.hasAttribute('data-noop')) return;
   buzz();
@@ -207,6 +210,7 @@ document.addEventListener('click', e=>{
     localStorage.setItem('open_sk', sortKey); localStorage.setItem('open_sd', sortDir);
     renderList();
   }
+  else if (d.gf){ gf = d.gf; localStorage.setItem('open_gf', gf); renderList(); }
   else if (d.cat){ cat = (cat===d.cat) ? '' : d.cat; renderList(); }
   else if (d.done){
     const k = dkey(d.done), i = done.indexOf(k);
