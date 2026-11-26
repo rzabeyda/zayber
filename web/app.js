@@ -11,6 +11,7 @@ const CATS = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
 const catOf = t => CATS[String(t).split('.')[0]];
 const ITEMS = {};
 (window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, g:x.g, c:x.c, th:x.th||[], link:x.link, k:x.k, cover:x.cover, link:x.link}; });
+const slug = t => { let h = 5381; for (const ch of t) h = ((h*33) ^ ch.charCodeAt(0)) >>> 0; return 'f' + h.toString(36); };
 const dkey = id => ITEMS[id].t + ':' + ITEMS[id].title;
 const SHOW_LABELS = false; // метки Ранг/Страх/Женщины временно выключены
 const pill = key => { if (!SHOW_LABELS) return ''; const c = catOf(key); return `<span class="lab" style="color:rgb(${c.color});background:rgba(${c.color},.13);border-color:rgba(${c.color},.38)">${esc(c.title)}</span>`; };
@@ -232,7 +233,7 @@ document.addEventListener('click', e=>{
     localStorage.setItem('open_sk', sortKey); localStorage.setItem('open_sd', sortDir);
     renderList();
   }
-  else if (d.share){ const it = ITEMS[d.share]; const url = 'https://t.me/zayberman_bot'; const text = it.title + (it.year ? ' ('+it.year+')' : '') + ': смотри в Open'; const link = 'https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(text); tg && tg.openTelegramLink ? tg.openTelegramLink(link) : window.open(link,'_blank'); }
+  else if (d.share){ const it = ITEMS[d.share]; const url = 'https://t.me/zayberman_bot?startapp=' + slug(it.title); const text = it.title + (it.year ? ' ('+it.year+')' : ''); const link = 'https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(text); tg && tg.openTelegramLink ? tg.openTelegramLink(link) : window.open(link,'_blank'); }
   else if (d.th){ th = (th===d.th) ? '' : d.th; renderList(); }
   else if (d.bf){ bf = d.bf; localStorage.setItem('open_bf', bf); renderList(); }
   else if (d.gf){ gf = d.gf; localStorage.setItem('open_gf', gf); renderList(); }
@@ -273,6 +274,10 @@ document.addEventListener('click', e=>{
     }catch(e){}
   }
   render();
+  try{
+    const sp = tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param;
+    if (sp){ const id = Object.keys(ITEMS).find(k=>slug(ITEMS[k].title)===sp); if (id){ tab = ITEMS[id].t; render(); curList = listIds(); openSheet(id); } }
+  }catch(e){}
 })();
 })();
 
