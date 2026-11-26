@@ -75,7 +75,7 @@ function renderList(){
   const ids = ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (gf==='all' || (gf==='grow') === !!ITEMS[id].g)));
   curList = ids;
   const gb = (k,txt)=>`<button class="gf ${gf===k?'on':''}" data-gf="${k}">${txt}</button>`;
-  const gbar = `<div class="gfs">${gb('all','Все')}${gb('grow','Рост')}${gb('relax','Релакс')}</div>`;
+  const gbar = `<div class="gfs">${gb('all','Все')}${gb('grow','Ранг')}${gb('relax','Релакс')}</div>`;
   app.innerHTML = `${gbar}<div class="tophead"><div class="toptitle">${gf==='relax'?'Расслабься':'Повышаем ранг'}</div>${sortBtns()}</div>${bar}${ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Пока пусто</div>'}`;
   fitTitles(app);
 }
