@@ -81,7 +81,7 @@ function renderList(){
   const bbar = `<div class="gfs">${bb('all','Все','Все')}${bb('sacred','<svg class="tri" viewBox="0 0 66 22"><path d="M11 2v18M5 8h12"/><path d="M38 3a8 8 0 1 0 0 16a6.4 6.4 0 0 1 0-16z"/><path d="M55 3l7 12H48zM55 19L48 7h14z"/></svg>','Священные писания')}${bb('other','<svg viewBox="0 0 24 24"><path d="M5 4h4v16H5zM10 7h4v13h-4zM15.5 5l3.8-.8 2.7 15.6-3.8.8zM3 21h18"/></svg>','Все кроме священных писаний')}</div>`;
   const gbar0 = `<div class="gfs">${gb('all','Все')}${gb('grow','<svg viewBox="0 0 24 24"><path d="M5 11l7-6 7 6M5 17l7-6 7 6M5 23l7-6 7 6" transform="translate(0 -3)"/></svg>')}${gb('relax','<svg viewBox="0 0 24 24"><path d="M12 4c3 3 3.6 6.6 0 11-3.6-4.4-3-8 0-11zM12 15c-1.2-4-5-6.2-9.5-5.2.2 4.4 4.2 7.2 9.5 5.2zM12 15c1.2-4 5-6.2 9.5-5.2-.2 4.4-4.2 7.2-9.5 5.2zM6 19.5h12"/></svg>')}</div>`;
   const gbar = tab==='book' ? bbar : gbar0;
-  app.innerHTML = `${gbar}<div class="tophead"><div class="toptitle">${tab!=='book'&&gf==='relax'?'Расслабься':'Повышаем ранг'}</div>${sortBtns()}</div>${bar}${ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Пока пусто</div>'}`;
+  app.innerHTML = `${gbar}<div class="tophead"><div class="toptitle">${tab!=='book'&&gf==='relax'?'Расслабься':'Повышаем ранг'} <span class="tcnt">${ids.length}</span></div>${sortBtns()}</div>${bar}${ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Пока пусто</div>'}`;
   fitTitles(app);
 }
 
