@@ -196,3 +196,8 @@ body.lock #totop{display:none}
 
 .sq.geo svg{width:24px;height:24px}
 .sq.geo.on svg rect[stroke]{stroke:#444}
+
+.sq.geo{border:0;background:transparent;box-shadow:none;width:36px}
+.sq.geo svg{opacity:.55}
+.sq.geo.on{background:transparent;border:0}
+.sq.geo.on svg{opacity:1;filter:drop-shadow(0 0 6px rgba(255,255,255,.7))}
