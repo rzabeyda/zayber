@@ -204,3 +204,6 @@ body.lock #totop{display:none}
 
 .sq.geo{width:42px}
 .sq.geo svg{width:30px;height:30px}
+
+.toptitle{font-size:19px;white-space:nowrap}
+.tcnt{font-size:13px}

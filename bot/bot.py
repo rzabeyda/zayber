@@ -46,7 +46,7 @@ def get_user(u):
                        (uid, u.get("username"), u.get("first_name")))
             row = ("name",)
             uname = f"@{u['username']}" if u.get("username") else f"{u.get('first_name', '')} (без username)"
-            call("sendMessage", chat_id=ADMIN_ID, text=f"Новый юзер {uname}\nID: {uid}")
+            call("sendMessage", chat_id=ADMIN_ID, text=f"Новый юзер {uname}")
         db.execute("UPDATE users SET last_seen=CURRENT_TIMESTAMP, username=? WHERE tg_id=?", (u.get("username"), uid))
         db.commit()
         return row[0]
