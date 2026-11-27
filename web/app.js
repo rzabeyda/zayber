@@ -10,7 +10,7 @@ const buzz = () => { try{ tg && tg.HapticFeedback.impactOccurred('light'); }catc
 const CATS = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
 const catOf = t => CATS[String(t).split('.')[0]];
 const ITEMS = {};
-(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, g:x.g, c:x.c, th:x.th||[], kpq:x.kpq, ru:x.ru, alt:x.alt, link:x.link, k:x.k, cover:x.cover, link:x.link}; });
+(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, g:x.g, c:x.c, th:x.th||[], gn:x.gn||'', kpq:x.kpq, ru:x.ru, alt:x.alt, link:x.link, k:x.k, cover:x.cover, link:x.link}; });
 const slug = t => { let h = 5381; for (const ch of t) h = ((h*33) ^ ch.charCodeAt(0)) >>> 0; return 'f' + h.toString(36); };
 const dkey = id => ITEMS[id].t + ':' + ITEMS[id].title;
 const SHOW_LABELS = false; // метки Ранг/Страх/Женщины временно выключены
@@ -76,7 +76,7 @@ function sortBtns(){
 }
 function listIds(){
   const qq = q.trim().toLowerCase();
-  if (qq) return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (ITEMS[id].title+' '+(ITEMS[id].author||'')+' '+(ITEMS[id].alt||'')).toLowerCase().includes(qq)));
+  if (qq) return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (ITEMS[id].title+' '+(ITEMS[id].author||'')+' '+(ITEMS[id].alt||'')+' '+(ITEMS[id].gn||'')).toLowerCase().includes(qq)));
   if (geo) return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (geo==='ru') === !!ITEMS[id].ru));
   return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (tab==='book' ? (bf==='all' || (bf==='sacred') === SACRED.includes(ITEMS[id].title)) : (gf==='all' || (gf==='grow' ? !ITEMS[id].c : !!ITEMS[id].c)))).filter(id=>!q || (ITEMS[id].title+' '+(ITEMS[id].author||'')).toLowerCase().includes(q.toLowerCase())).filter(id=>!th || (ITEMS[id].th||[]).includes(th)));
 }
