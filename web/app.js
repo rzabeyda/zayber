@@ -85,14 +85,14 @@ function renderList(){
   const bar = !SHOW_LABELS ? '' : `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
   const ids = listIds();
   curList = ids;
-  const gb = (k,txt)=>`<button class="gf ${gf===k&&!geo?'on':''}" data-gf="${k}" aria-label="${k==='char'?'Характер':k==='mind'?'Сознание':k==='chill'?'Relax':'Все'}">${txt}</button>`;
+  const gb = (k,txt)=>`<button class="gf ${gf===k&&!geo?'on':''}" data-gf="${k}" aria-label="${k==='char'?'Характер':k==='mind'?'Сознание':k==='chill'?'Релакс':'Все'}">${txt}</button>`;
   const bb = (k,txt,l)=>`<button class="gf ${bf===k?'on':''}" data-bf="${k}" aria-label="${l}">${txt}</button>`;
   const bbar = `<div class="gfs">${bb('all','Все','Все')}${bb('sacred','<i class="ei ei-cross"></i>','Священные писания')}${bb('other','<i class="ei ei-book"></i>','Все кроме священных писаний')}</div>`;
   const gbar0 = `<div class="gfs">${gb('all','Все')}${gb('char','<i class="ei ei-bicep"></i>')}${gb('mind','<i class="ei ei-brain"></i>')}${gb('chill','<i class="ei ei-chill"></i>')}</div>`;
   const gbar = tab==='book' ? bbar : gbar0;
   const TH = [['fear','Страх'],['money','Деньги'],['discipline','Дисциплина'],['women','Женщины']];
   const thbar = `<div class="ths">${TH.map(([k,t])=>`<button class="thc ${th===k?'on':''}" data-th="${k}">${t}</button>`).join('')}</div>`;
-  app.innerHTML = `<div class="srow"><input class="search" id="q" placeholder="Поиск" value="${esc(q)}" autocomplete="off"><button class="rnd" id="rnd" aria-label="Случайный выбор"><span>РАНДОМ</span></button></div>${gbar}<div class="tophead"><div class="toptitle">${tab==='book' ? 'Библиотека' : geo==='ru' ? 'Русское' : geo==='world' ? 'Весь мир' : gf==='chill' ? 'Relax' : gf==='char' ? 'Характер' : gf==='mind' ? 'Сознание' : 'Всё подряд'} <span class="tcnt" id="tc">${ids.length}</span></div>${sortBtns()}</div>${bar}<div id="gridbox">${gridHtml(ids)}</div>`;
+  app.innerHTML = `<div class="srow"><input class="search" id="q" placeholder="Поиск" value="${esc(q)}" autocomplete="off"><button class="rnd" id="rnd" aria-label="Случайный выбор"><span>РАНДОМ</span></button></div>${gbar}<div class="tophead"><div class="toptitle">${tab==='book' ? 'Библиотека' : geo==='ru' ? 'Русское' : geo==='world' ? 'Весь мир' : gf==='chill' ? 'Релакс' : gf==='char' ? 'Характер' : gf==='mind' ? 'Сознание' : 'Всё подряд'} <span class="tcnt" id="tc">${ids.length}</span></div>${sortBtns()}</div>${bar}<div id="gridbox">${gridHtml(ids)}</div>`;
   fitTitles(app);
   const qi = $('#q');
   if (qi) qi.oninput = () => { q = qi.value; const l = listIds(); curList = l; $('#gridbox').innerHTML = gridHtml(l); $('#tc').textContent = l.length; fitTitles($('#gridbox')); };
