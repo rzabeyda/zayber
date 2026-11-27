@@ -97,7 +97,7 @@ function renderList(){
   const qi = $('#q');
   if (qi) qi.oninput = () => { q = qi.value; const l = listIds(); curList = l; $('#gridbox').innerHTML = gridHtml(l); $('#tc').textContent = l.length; fitTitles($('#gridbox')); };
   const rb = $('#rnd');
-  if (rb) rb.onclick = () => { const l = listIds(); if (l.length) openSheet(l[Math.floor(Math.random()*l.length)]); };
+  if (rb) rb.onclick = () => { const l = listIds().filter(id=>!done.includes(dkey(id))); if (l.length) openSheet(l[Math.floor(Math.random()*l.length)]); else { rb.querySelector('span').textContent = 'Всё отмечено'; setTimeout(()=>{ rb.querySelector('span').textContent = 'РАНДОМ'; }, 1800); } };
 }
 function gridHtml(ids){ return ids.length ? `<div class="grid">${ids.map(itemRow).join('')}</div>` : '<div class="empty">Ничего не найдено</div>'; }
 
