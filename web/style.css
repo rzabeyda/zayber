@@ -250,3 +250,6 @@ body.lock #totop{display:none}
 .gfs .gf:not(.on) .ei{opacity:1;color:#e4e4e4}
 .gfs .gf svg{width:22px;height:22px}
 .gfs .gf svg.tri{width:58px;height:20px}
+
+.ei-cross{-webkit-mask-image:url(icons/cross_m.png);mask-image:url(icons/cross_m.png)}
+.ei-book{-webkit-mask-image:url(icons/book_m.png);mask-image:url(icons/book_m.png)}
