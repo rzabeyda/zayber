@@ -228,3 +228,11 @@ body.lock #totop{display:none}
 
 .rnd{min-width:150px;justify-content:center;padding:0 20px;font-size:14px;letter-spacing:.5px}
 .srow .search{min-width:0}
+
+/* фильтры Все / Ранг / Chill: капсула */
+.gfs{gap:2px;padding:4px;margin-top:14px;border:1.5px solid rgba(255,255,255,.28);border-radius:999px;background:#0b0b0b;box-shadow:0 0 18px rgba(255,255,255,.08)}
+.gfs .gf{height:40px;border:0;border-radius:999px;background:transparent;box-shadow:none;color:#cfcfcf;display:flex;align-items:center;justify-content:center;transition:background .2s,color .2s}
+.gfs .gf.on{background:#fff;color:#000}
+.gfs .gf svg{stroke:currentColor}
+.srow+.gfs{padding-top:4px}
+.gfs+.tophead{padding-top:16px}
