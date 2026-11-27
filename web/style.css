@@ -238,3 +238,6 @@ body.lock #totop{display:none}
 .gfs+.tophead{padding-top:16px}
 .rnd{min-width:0;padding:0 16px;width:auto}
 .gfs .gf svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+.gfs .gf .ei{width:28px;height:28px;display:block;pointer-events:none}
+.gfs .gf:not(.on) .ei{opacity:.9}
