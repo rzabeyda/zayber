@@ -248,3 +248,5 @@ body.lock #totop{display:none}
 .ei-brain{-webkit-mask-image:url(icons/brain_m.png);mask-image:url(icons/brain_m.png)}
 .ei-chill{-webkit-mask-image:url(icons/chill_m.png);mask-image:url(icons/chill_m.png)}
 .gfs .gf:not(.on) .ei{opacity:1;color:#e4e4e4}
+.gfs .gf svg{width:22px;height:22px}
+.gfs .gf svg.tri{width:58px;height:20px}
