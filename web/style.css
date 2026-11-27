@@ -241,3 +241,10 @@ body.lock #totop{display:none}
 
 .gfs .gf .ei{width:28px;height:28px;display:block;pointer-events:none}
 .gfs .gf:not(.on) .ei{opacity:.9}
+
+.gfs .gf .ei{display:block;width:27px;height:27px;background:currentColor;font-style:normal;-webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;opacity:1}
+.gfs .gf:not(.on) .ei{opacity:.85}
+.ei-bicep{-webkit-mask-image:url(icons/bicep_m.png);mask-image:url(icons/bicep_m.png)}
+.ei-brain{-webkit-mask-image:url(icons/brain_m.png);mask-image:url(icons/brain_m.png)}
+.ei-chill{-webkit-mask-image:url(icons/chill_m.png);mask-image:url(icons/chill_m.png)}
+.gfs .gf:not(.on) .ei{opacity:1;color:#e4e4e4}

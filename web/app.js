@@ -88,7 +88,7 @@ function renderList(){
   const gb = (k,txt)=>`<button class="gf ${gf===k&&!geo?'on':''}" data-gf="${k}" aria-label="${k==='char'?'Характер':k==='mind'?'Разум':k==='chill'?'Chill':'Все'}">${txt}</button>`;
   const bb = (k,txt,l)=>`<button class="gf ${bf===k?'on':''}" data-bf="${k}" aria-label="${l}">${txt}</button>`;
   const bbar = `<div class="gfs">${bb('all','Все','Все')}${bb('sacred','<svg class="tri" viewBox="0 0 66 22"><path d="M11 2v18M5 8h12"/><path d="M38 3a8 8 0 1 0 0 16a6.4 6.4 0 0 1 0-16z"/><path d="M55 3l7 12H48zM55 19L48 7h14z"/></svg>','Священные писания')}${bb('other','<svg viewBox="0 0 24 24"><path d="M5 4h4v16H5zM10 7h4v13h-4zM15.5 5l3.8-.8 2.7 15.6-3.8.8zM3 21h18"/></svg>','Все кроме священных писаний')}</div>`;
-  const gbar0 = `<div class="gfs">${gb('all','Все')}${gb('char','<img class="ei" src="icons/bicep.svg" alt="Характер">')}${gb('mind','<img class="ei" src="icons/brain.svg" alt="Разум">')}${gb('chill','<img class="ei" src="icons/lotus.svg" alt="Chill">')}</div>`;
+  const gbar0 = `<div class="gfs">${gb('all','Все')}${gb('char','<i class="ei ei-bicep"></i>')}${gb('mind','<i class="ei ei-brain"></i>')}${gb('chill','<i class="ei ei-chill"></i>')}</div>`;
   const gbar = tab==='book' ? bbar : gbar0;
   const TH = [['fear','Страх'],['money','Деньги'],['discipline','Дисциплина'],['women','Женщины']];
   const thbar = `<div class="ths">${TH.map(([k,t])=>`<button class="thc ${th===k?'on':''}" data-th="${k}">${t}</button>`).join('')}</div>`;
