@@ -10,7 +10,7 @@ const buzz = () => { try{ tg && tg.HapticFeedback.impactOccurred('light'); }catc
 const CATS = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
 const catOf = t => CATS[String(t).split('.')[0]];
 const ITEMS = {};
-(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, g:x.g, c:x.c, th:x.th||[], gn:x.gn||'', kpq:x.kpq, ru:x.ru, alt:x.alt, link:x.link, k:x.k, cover:x.cover, link:x.link}; });
+(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, g:x.g, c:x.c, th:x.th||[], gr:x.gr, gn:x.gn||'', kpq:x.kpq, ru:x.ru, alt:x.alt, link:x.link, k:x.k, cover:x.cover, link:x.link}; });
 const slug = t => { let h = 5381; for (const ch of t) h = ((h*33) ^ ch.charCodeAt(0)) >>> 0; return 'f' + h.toString(36); };
 const dkey = id => ITEMS[id].t + ':' + ITEMS[id].title;
 const SHOW_LABELS = false; // метки Ранг/Страх/Женщины временно выключены
@@ -20,7 +20,7 @@ const CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
 
 // ---------- состояние ----------
 let sortKey = localStorage.getItem('open_sk') || '', sortDir = +(localStorage.getItem('open_sd') || 1);
-let gf = localStorage.getItem('open_gf') || 'all';
+let gf = localStorage.getItem('open_gf') || 'all'; if (!['all','char','mind','chill'].includes(gf)) { gf = 'all'; localStorage.setItem('open_gf','all'); }
 let q = '', th = '', geo = localStorage.getItem('open_geo') || '';
 let bf = localStorage.getItem('open_bf') || 'all';
 const SACRED = ['Библия. Новый Завет','Библия. Ветхий Завет','Коран','Тора','Танах','Талмуд','Трипитака','Веды'];
@@ -79,20 +79,20 @@ function listIds(){
   const qq = q.trim().toLowerCase();
   if (qq) return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (ITEMS[id].title+' '+(ITEMS[id].author||'')+' '+(ITEMS[id].alt||'')+' '+(ITEMS[id].gn||'')).toLowerCase().includes(qq)));
   if (geo) return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (geo==='ru') === !!ITEMS[id].ru));
-  return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (tab==='book' ? (bf==='all' || (bf==='sacred') === SACRED.includes(ITEMS[id].title)) : (gf==='all' || (gf==='grow' ? !ITEMS[id].c : !!ITEMS[id].c)))).filter(id=>!q || (ITEMS[id].title+' '+(ITEMS[id].author||'')).toLowerCase().includes(q.toLowerCase())).filter(id=>!th || (ITEMS[id].th||[]).includes(th)));
+  return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (tab==='book' ? (bf==='all' || (bf==='sacred') === SACRED.includes(ITEMS[id].title)) : (gf==='all' || ITEMS[id].gr===gf))).filter(id=>!q || (ITEMS[id].title+' '+(ITEMS[id].author||'')).toLowerCase().includes(q.toLowerCase())).filter(id=>!th || (ITEMS[id].th||[]).includes(th)));
 }
 function renderList(){
   const bar = !SHOW_LABELS ? '' : `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
   const ids = listIds();
   curList = ids;
-  const gb = (k,txt)=>`<button class="gf ${gf===k&&!geo?'on':''}" data-gf="${k}" aria-label="${k==='grow'?'Ранг':k==='relax'?'Релакс':'Все'}">${txt}</button>`;
+  const gb = (k,txt)=>`<button class="gf ${gf===k&&!geo?'on':''}" data-gf="${k}" aria-label="${k==='char'?'Характер':k==='mind'?'Разум':k==='chill'?'Chill':'Все'}">${txt}</button>`;
   const bb = (k,txt,l)=>`<button class="gf ${bf===k?'on':''}" data-bf="${k}" aria-label="${l}">${txt}</button>`;
   const bbar = `<div class="gfs">${bb('all','Все','Все')}${bb('sacred','<svg class="tri" viewBox="0 0 66 22"><path d="M11 2v18M5 8h12"/><path d="M38 3a8 8 0 1 0 0 16a6.4 6.4 0 0 1 0-16z"/><path d="M55 3l7 12H48zM55 19L48 7h14z"/></svg>','Священные писания')}${bb('other','<svg viewBox="0 0 24 24"><path d="M5 4h4v16H5zM10 7h4v13h-4zM15.5 5l3.8-.8 2.7 15.6-3.8.8zM3 21h18"/></svg>','Все кроме священных писаний')}</div>`;
-  const gbar0 = `<div class="gfs">${gb('all','Все')}${gb('grow','<svg viewBox="0 0 24 24"><path d="M5 11l7-6 7 6M5 17l7-6 7 6M5 23l7-6 7 6" transform="translate(0 -3)"/></svg>')}${gb('relax','<svg viewBox="0 0 24 24"><path d="M12 4c3 3 3.6 6.6 0 11-3.6-4.4-3-8 0-11zM12 15c-1.2-4-5-6.2-9.5-5.2.2 4.4 4.2 7.2 9.5 5.2zM12 15c1.2-4 5-6.2 9.5-5.2-.2 4.4-4.2 7.2-9.5 5.2zM6 19.5h12"/></svg>')}</div>`;
+  const gbar0 = `<div class="gfs">${gb('all','Все')}${gb('char','<svg viewBox="0 0 24 24"><path d="M5 11l7-6 7 6M5 17l7-6 7 6M5 23l7-6 7 6" transform="translate(0 -3)"/></svg>')}${gb('mind','<svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>')}${gb('chill','<svg viewBox="0 0 24 24"><path d="M12 4c3 3 3.6 6.6 0 11-3.6-4.4-3-8 0-11zM12 15c-1.2-4-5-6.2-9.5-5.2.2 4.4 4.2 7.2 9.5 5.2zM12 15c1.2-4 5-6.2 9.5-5.2-.2 4.4-4.2 7.2-9.5 5.2zM6 19.5h12"/></svg>')}</div>`;
   const gbar = tab==='book' ? bbar : gbar0;
   const TH = [['fear','Страх'],['money','Деньги'],['discipline','Дисциплина'],['women','Женщины']];
   const thbar = `<div class="ths">${TH.map(([k,t])=>`<button class="thc ${th===k?'on':''}" data-th="${k}">${t}</button>`).join('')}</div>`;
-  app.innerHTML = `<div class="srow"><input class="search" id="q" placeholder="Поиск" value="${esc(q)}" autocomplete="off"><button class="rnd" id="rnd" aria-label="Случайный выбор"><span>РАНДОМ</span></button></div>${gbar}<div class="tophead"><div class="toptitle">${tab==='book' ? 'Просветление' : geo==='ru' ? 'Русское' : geo==='world' ? 'Весь мир' : gf==='relax' ? 'Chill' : gf==='grow' ? 'Просветление' : 'Всё подряд'} <span class="tcnt" id="tc">${ids.length}</span></div>${sortBtns()}</div>${bar}<div id="gridbox">${gridHtml(ids)}</div>`;
+  app.innerHTML = `<div class="srow"><input class="search" id="q" placeholder="Поиск" value="${esc(q)}" autocomplete="off"><button class="rnd" id="rnd" aria-label="Случайный выбор"><span>РАНДОМ</span></button></div>${gbar}<div class="tophead"><div class="toptitle">${tab==='book' ? 'Библиотека' : geo==='ru' ? 'Русское' : geo==='world' ? 'Весь мир' : gf==='chill' ? 'Chill' : gf==='char' ? 'Характер' : gf==='mind' ? 'Разум' : 'Всё подряд'} <span class="tcnt" id="tc">${ids.length}</span></div>${sortBtns()}</div>${bar}<div id="gridbox">${gridHtml(ids)}</div>`;
   fitTitles(app);
   const qi = $('#q');
   if (qi) qi.oninput = () => { q = qi.value; const l = listIds(); curList = l; $('#gridbox').innerHTML = gridHtml(l); $('#tc').textContent = l.length; fitTitles($('#gridbox')); };

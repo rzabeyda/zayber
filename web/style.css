@@ -236,3 +236,4 @@ body.lock #totop{display:none}
 .gfs .gf svg{stroke:currentColor}
 .srow+.gfs{padding-top:4px}
 .gfs+.tophead{padding-top:16px}
+.rnd{min-width:0;padding:0 16px;width:auto}
