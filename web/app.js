@@ -10,7 +10,7 @@ const buzz = () => { try{ tg && tg.HapticFeedback.impactOccurred('light'); }catc
 const CATS = Object.fromEntries(PROBLEMS.map(p=>[p.id,p]));
 const catOf = t => CATS[String(t).split('.')[0]];
 const ITEMS = {};
-(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, g:x.g, c:x.c, th:x.th||[], gr:x.gr, gn:x.gn||'', kpq:x.kpq, ru:x.ru, alt:x.alt, link:x.link, k:x.k, cover:x.cover, link:x.link}; });
+(window.CATALOG||[]).forEach((x,i)=>{ ITEMS['i'+i] = {t:x.t, title:x.title, author:x.author, year:x.year, desc:x.desc, tags:(x.tags||[]).filter(catOf), mine:x.mine, g:x.g, c:x.c, th:x.th||[], ep:x.ep, dt:x.dt, gr:x.gr, gn:x.gn||'', kpq:x.kpq, ru:x.ru, alt:x.alt, link:x.link, k:x.k, cover:x.cover, link:x.link}; });
 const slug = t => { let h = 5381; for (const ch of t) h = ((h*33) ^ ch.charCodeAt(0)) >>> 0; return 'f' + h.toString(36); };
 const dkey = id => ITEMS[id].t + ':' + ITEMS[id].title;
 const SHOW_LABELS = false; // метки Ранг/Страх/Женщины временно выключены
@@ -21,6 +21,7 @@ const CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
 // ---------- состояние ----------
 let sortKey = localStorage.getItem('open_sk') || '', sortDir = +(localStorage.getItem('open_sd') || 1);
 let gf = localStorage.getItem('open_gf') || 'all'; if (!['all','char','mind','chill'].includes(gf)) { gf = 'all'; localStorage.setItem('open_gf','all'); }
+let tgl = localStorage.getItem('open_tg') || 'all'; if (!['all','film','one','ser'].includes(tgl)) tgl = 'all';
 let q = '', th = '', geo = localStorage.getItem('open_geo') || '';
 let bf = localStorage.getItem('open_bf') || 'all';
 const SACRED = ['Библия. Новый Завет','Библия. Ветхий Завет','Коран','Тора','Танах','Талмуд','Трипитака','Веды'];
@@ -58,7 +59,7 @@ function itemRow(id){
   const isDone = done.includes(dkey(id)), isFav = fav.includes(dkey(id));
   const main = it.tags[0];
   return `<div class="card ${isDone?'done':''} ${isFav?'fav':''}" data-item="${id}">${coverHtml(it)}<div class="shade"></div>
-    <div class="meta">${main?pill(main):''}<b class="ct">${esc(it.title)}</b><small>${esc(subOf(it))||'&nbsp;'}</small></div></div>`;
+    <div class="meta">${main?pill(main):''}<b class="ct">${esc(it.dt||it.title)}</b><small>${esc(subOf(it))||'&nbsp;'}</small></div></div>`;
 }
 
 // ---------- вкладки каталога ----------
@@ -79,7 +80,7 @@ function listIds(){
   const qq = q.trim().toLowerCase();
   if (qq) return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (ITEMS[id].title+' '+(ITEMS[id].author||'')+' '+(ITEMS[id].alt||'')+' '+(ITEMS[id].gn||'')).toLowerCase().includes(qq)));
   if (geo) return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (geo==='ru') === !!ITEMS[id].ru));
-  return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (tab==='book' ? (bf==='all' || (bf==='sacred') === SACRED.includes(ITEMS[id].title)) : (gf==='all' || ITEMS[id].gr===gf))).filter(id=>!q || (ITEMS[id].title+' '+(ITEMS[id].author||'')).toLowerCase().includes(q.toLowerCase())).filter(id=>!th || (ITEMS[id].th||[]).includes(th)));
+  return ordered(Object.keys(ITEMS).filter(id=>ITEMS[id].t===tab && (!cat || ITEMS[id].tags.some(t=>t.split('.')[0]===cat)) && (tab==='book' ? (bf==='all' || (bf==='sacred') === SACRED.includes(ITEMS[id].title)) : tab==='toon' ? (tgl==='all' || ITEMS[id].ep===tgl) : (gf==='all' || ITEMS[id].gr===gf))).filter(id=>!q || (ITEMS[id].title+' '+(ITEMS[id].author||'')).toLowerCase().includes(q.toLowerCase())).filter(id=>!th || (ITEMS[id].th||[]).includes(th)));
 }
 function renderList(){
   const bar = !SHOW_LABELS ? '' : `<div class="cats">${PROBLEMS.map(p=>`<button class="cat ${cat===p.id?'on':''}" data-cat="${p.id}">${esc(p.title)}</button>`).join('')}</div>`;
@@ -89,10 +90,12 @@ function renderList(){
   const bb = (k,txt,l)=>`<button class="gf ${bf===k?'on':''}" data-bf="${k}" aria-label="${l}">${txt}</button>`;
   const bbar = `<div class="gfs">${bb('all','Все','Все')}${bb('sacred','<i class="ei ei-cross"></i>','Священные писания')}${bb('other','<i class="ei ei-book"></i>','Все кроме священных писаний')}</div>`;
   const gbar0 = `<div class="gfs">${gb('all','Все')}${gb('char','<i class="ei ei-bicep"></i>')}${gb('mind','<i class="ei ei-brain"></i>')}${gb('chill','<i class="ei ei-chill"></i>')}</div>`;
-  const gbar = tab==='book' ? bbar : gbar0;
+  const tb = (k,txt)=>`<button class="gf tx ${tgl===k?'on':''}" data-tg="${k}">${txt}</button>`;
+  const tbar = `<div class="gfs">${tb('all','Все')}${tb('film','Фильмы')}${tb('one','Мульты')}${tb('ser','Сериалы')}</div>`;
+  const gbar = tab==='book' ? bbar : tab==='toon' ? tbar : gbar0;
   const TH = [['fear','Страх'],['money','Деньги'],['discipline','Дисциплина'],['women','Женщины']];
   const thbar = `<div class="ths">${TH.map(([k,t])=>`<button class="thc ${th===k?'on':''}" data-th="${k}">${t}</button>`).join('')}</div>`;
-  app.innerHTML = `<div class="srow"><input class="search" id="q" placeholder="Поиск" value="${esc(q)}" autocomplete="off"><button class="rnd" id="rnd" aria-label="Случайный выбор"><span>РАНДОМ</span></button></div>${gbar}<div class="tophead"><div class="toptitle">${tab==='book' ? 'Библиотека' : geo==='ru' ? 'Русское' : geo==='world' ? 'Весь мир' : gf==='chill' ? 'Релакс' : gf==='char' ? 'Характер' : gf==='mind' ? 'Сознание' : 'Всё подряд'} <span class="tcnt" id="tc">${ids.length}</span></div>${sortBtns()}</div>${bar}<div id="gridbox">${gridHtml(ids)}</div>`;
+  app.innerHTML = `<div class="srow"><input class="search" id="q" placeholder="Поиск" value="${esc(q)}" autocomplete="off"><button class="rnd" id="rnd" aria-label="Случайный выбор"><span>РАНДОМ</span></button></div>${gbar}<div class="tophead"><div class="toptitle">${tab==='toon' ? 'Мульты' : tab==='book' ? 'Библиотека' : geo==='ru' ? 'Русское' : geo==='world' ? 'Весь мир' : gf==='chill' ? 'Релакс' : gf==='char' ? 'Характер' : gf==='mind' ? 'Сознание' : 'Всё подряд'} <span class="tcnt" id="tc">${ids.length}</span></div>${sortBtns()}</div>${bar}<div id="gridbox">${gridHtml(ids)}</div>`;
   fitTitles(app);
   const qi = $('#q');
   if (qi) qi.oninput = () => { q = qi.value; const l = listIds(); curList = l; $('#gridbox').innerHTML = gridHtml(l); $('#tc').textContent = l.length; fitTitles($('#gridbox')); };
@@ -108,15 +111,15 @@ function openSheet(id){
   const isDone = done.includes(dkey(id)), isFav = fav.includes(dkey(id));
   sheet.innerHTML = `<div class="sh-cover">${coverHtml(it, true)}<div class="sh-fade"></div>${curList.length>1&&curList.indexOf(id)>=0?`<div class="sh-count">${curList.indexOf(id)+1} / ${curList.length}</div>`:''}<button class="sh-x" data-close="1">${'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>'}</button></div>
   <div class="sh-body">
-    <h1 class="sh-t">${esc(it.title)}</h1>
+    <h1 class="sh-t">${esc(it.dt||it.title)}</h1>
     <div class="hint">${esc(subOf(it))}</div>
     <div class="tags" style="margin-top:12px">${it.tags.map(pill).join('')}</div>
     <div class="sh-actions"><button class="sact ${isDone?'on':''}" data-done="${id}">${CHECK}<span>${isDone?(it.t==='book'?'Прочитано':'Просмотрено'):'Отметить'}</span></button><button class="sact ${isFav?'on fav':''}" data-fav="${id}">${HEART}<span>${isFav?'В избранном':'В избранное'}</span></button></div>
     <button class="watch share" data-share="${id}">Поделиться</button>
-    <p class="sh-d">${esc(it.desc).split('\n').join('<br>')}</p>
+    <p class="sh-d">${esc(it.desc).split('\n').join('<br>').split('[[y]]').join('<span class="hl">').split('[[/y]]').join('</span>').split('[[b]]').join('<span class="hlb">').split('[[/b]]').join('</span>').split('[[r]]').join('<span class="hlr">').split('[[/r]]').join('</span>').split('[[w]]').join('<span class="hlw">').split('[[/w]]').join('</span>')}</p>
     ${it.k?`<span class="readbtn" data-read="${it.k}">Читать</span><div class="txt" id="txt-${it.k}" data-noop></div>`:''}
     ${it.link?`<button class="watch" data-link="${esc(it.link)}">${it.t==='book'?'Читать':'Смотреть'}</button>`:(it.t!=='book'?`<button class="watch" data-link="${esc('https://www.kinopoisk.ru/index.php?kp_query='+encodeURIComponent(it.kpq||(it.title+(it.year?' '+it.year:''))))}">Где смотреть</button>`:'')}
-    <button class="closebtn" data-close="1">Закрыть</button>
+    <button class="closebtn" data-close="1">Назад</button>
   </div>`;
   sheet.classList.add('open'); sheet.scrollTop = 0; document.body.classList.add('lock');
   if (tg && tg.BackButton){ tg.BackButton.onClick(closeSheet); tg.BackButton.show(); }
@@ -153,9 +156,28 @@ function closeSheet(){
 }
 
 // ---------- профиль ----------
+const AUTHOR_PICKS = [["Лучше звоните Солу", "Можно быть по одну сторону закона, а можно — по другую. Но если с кем-то договариваешься, держи своё слово."], ["Во все тяжкие", "Я всю мою жизнь прожил в страхе. Боялся того, что могло случиться, должно или не должно было случиться… и все пятьдесят лет я так прожил. Часто просыпался в три часа ночи… Но знаешь что, с тех пор как у меня нашли рак, я сплю отлично. И вот тогда я понял, что самое страшное — сам страх, он настоящий враг. Так что вставай и выйди навстречу миру, и врежь этому гаду так, чтоб все зубы повылетали."], ["Эль Камино: Во все тяжкие", "Либо ты убегаешь от вещей, либо встречаешься с ними лицом к лицу."], ["Игра в кальмара", "Если остаёшься человеком даже в самые тяжёлые моменты, вселенная никогда не бросит тебя."], ["Матрица", "Этот мир натянули на твои глаза, чтобы скрыть от тебя правду."], ["Шоу Трумана", "Весь мир вокруг может быть декорацией, где тебе с детства написали сценарий, но пока сам не упрёшься в стену и не выйдешь за дверь — живым не станешь."], ["Гладиатор", "У тебя могут забрать семью, свободу и имя, но если внутри есть стержень — даже в цепях ты остаёшься сильнее императора."], ["Форрест Гамп", "Не надо быть самым умным, чтобы победить. Просто будь честным, не предавай своих и беги вперёд, что бы ни происходило."], ["Лицо со шрамом", "Весь мир у твоих ног, если у тебя нет страха, но когда жадность и эго сносят крышу — ты сам себя закапываешь."], ["Брат", "Сила в холодном спокойствии и в том, что ты своих не бросаешь."], ["Бригада", "Если про меня или про кого-то из вас скажут, что он — фуфло, ну зачем тогда жить? Верно!?"], ["Бумер", "Не жизнь такая, а ты такой."], ["Чёрный двор", "Пацанские понты и романтика улиц красивы только на словах, а в жизни за них платят сломанными судьбами и сроками."], ["Шекер", "Лёгких денег не бывает — как только подумал, что самый хитрый и обманул систему, капкан уже захлопнулся."], ["Спасти рядового Райана", "Когда вокруг мясорубка и смерть, только там понимаешь, чего на самом деле стоит человеческая жизнь и мужское слово."], ["Малышка на миллион", "Хочешь стать лучшим — паши через боль до самого конца, даже если знаешь, что цена за мечту может быть максимальной."], ["Достучаться до небес", "Мы вечно откладываем жизнь на потом, а по-настоящему просыпаемся только тогда, когда времени остаётся на пару дней."], ["1+1 Неприкасаемые", "Даже если жизнь приковала тебя к креслу, рядом всегда может оказаться простой парень без тормозов, который снова научит тебя кайфовать от каждого дня."], ["День сурка", "Ты будешь просыпаться в одном и том же дерьме снова и снова, пока не перестанешь быть эгоистом и не поменяешь себя внутри."], ["Эффект бабочки", "Не пытайся переписать прошлое — каждая твоя ошибка сделала тебя тем, кто ты есть, а любая попытка схитрить ломает судьбы близких."], ["Игрок", "Когда внутри пустота, ты ставишь на кон не деньги, а собственную жизнь — и выигрываешь только тогда, когда перестаёшь бояться всё потерять."], ["Поймай меня, если сможешь", "Ограничения лишь в твоей голове."], ["Мгла", "Никогда не теряй веру, даже если кажется, что выхода нет."], ["Класс", "Никогда никого не бойся, иначе умрёшь."], ["Защищая свою жизнь", "На том свете тебя спросят не за твои косяки, а за то, хватило ли тебе смелости жить, а не прятаться в норе от страха."], ["Треугольник", "Ты будешь ходить по одному и тому же кругу ада, пока не перестанешь врать себе и не примешь то, что уже случилось."], ["Хатико: Самый верный друг", "Собака учит нас тому, о чём люди давно забыли: верность — это не красивые слова, это когда ждёшь до последнего вздоха."], ["Сайлент Хилл", "Внешний мир — это всегда отражение твоего внутреннего мира."], ["Укрощение строптивого", "Когда мужик самодостаточен, честен с собой и не прогибается под чужие капризы — именно это и сводит всех с ума."], ["ЖБ", "Жизнь всегда проверит, чего стоит твоё слово и твоё братство, когда запахнет реальными проблемами."], ["Коммерсант", "В больших делах нет друзей и эмоций — выживает только тот, кто держит голову холодной и просчитывает всё на три шага вперёд."], ["По-мужски", "Быть мужиком — это не кулаками махать в зале, а не струсить и ответить за свою семью в самый дерьмовый момент."], ["50 оттенков серого", "Смотри внимательно. Дисциплина — это путь к богатству."]];
+function picksRows(){
+  const byTitle = {};
+  Object.keys(ITEMS).forEach(id=>{ if (!byTitle[ITEMS[id].title]) byTitle[ITEMS[id].title] = id; });
+  return AUTHOR_PICKS.map(([t,q],i)=>{
+    const id = byTitle[t]; if (!id) return '';
+    return `<div class="pick" data-item="${id}"><div class="pn">${i+1}</div><div class="pb"><b>${esc(t)}</b><span>${esc(q)}</span></div></div>`;
+  }).join('');
+}
+function picksHtml(){
+  return `<div class="pickbtn" data-picks="1"><div><b>Подборка от автора</b></div><i>›</i></div>`;
+}
+function openPicks(){
+  let m = document.getElementById('picksm');
+  if (!m){ m = document.createElement('div'); m.id = 'picksm'; document.body.appendChild(m); }
+  m.innerHTML = `<button class="pm-x" data-pclose="1"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button class="pm-up" data-pup="1"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button><div class="pm-in"><h2>Подборка от автора</h2><div class="hint" style="margin:-4px 0 14px">Смотри по порядку: от самого важного к остальному.</div><div class="picks">${picksRows()}</div><button class="closebtn" data-pclose="1">Назад</button></div>`;
+  m.classList.add('open'); m.scrollTop = 0; document.body.classList.add('lock');
+}
+function closePicks(){ const m = document.getElementById('picksm'); if (m) m.classList.remove('open'); if (!sheetId) document.body.classList.remove('lock'); }
 function progHtml(){
   const keys = new Set(Object.keys(ITEMS).map(dkey)); const n = done.filter(k=>keys.has(k)).length, tot = keys.size;
-  return `<div class="prog"><div class="prog-t"><b>Отмечено</b><span>${n} из ${tot}</span></div><div class="prog-b"><i style="width:${tot?Math.round(n/tot*100):0}%"></i></div></div>`;
+  return `<div class="prog"><div class="prog-t"><b>Просмотрено</b><span>${n} из ${tot}</span></div><div class="prog-b"><i style="width:${tot?Math.round(n/tot*100):0}%"></i></div></div>`;
 }
 function renderMe(){
   const u = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) || {};
@@ -172,6 +194,7 @@ function renderMe(){
   const favItems = fav.map(k=>keyToId[k]).filter(Boolean);
   curList = favItems;
   app.innerHTML = `${head}
+  ${picksHtml()}
   ${progHtml()}
   <h2>Избранное</h2>
   ${favItems.length ? `<div class="grid">${favItems.map(itemRow).join('')}</div>` : '<div class="hint">Пока ничего нет</div>'}`;
@@ -224,12 +247,16 @@ function render(){
 const refresh = () => { (tab==='me' ? renderMe : renderList)(); if (sheetId) { const y = sheet.scrollTop; openSheet(sheetId); sheet.scrollTop = y; } };
 
 document.addEventListener('click', e=>{
-  const t = e.target.closest('[data-tab],[data-item],[data-edit],[data-done],[data-fav],[data-cat],[data-sort],[data-gf],[data-bf],[data-th],[data-geo],[data-share],[data-read],[data-close],[data-link],[data-noop]');
+  const t = e.target.closest('[data-tab],[data-item],[data-edit],[data-done],[data-fav],[data-cat],[data-sort],[data-gf],[data-bf],[data-tg],[data-th],[data-geo],[data-share],[data-read],[data-close],[data-link],[data-noop],[data-picks],[data-pclose],[data-pup]');
   if (!t) return;
   if (t.hasAttribute('data-noop')) return;
   buzz();
   const d = t.dataset;
-  if (d.close){ closeSheet(); }
+  if (d.picks){ openPicks(); }
+  else if (d.pclose){ closePicks(); }
+  else if (d.pup){ document.getElementById('picksm').scrollTo({top:0,behavior:'smooth'}); }
+  else if (d.item && t.closest('#picksm')){ closePicks(); openSheet(d.item); }
+  else if (d.close){ closeSheet(); }
   else if (d.link){ tg && tg.openLink ? tg.openLink(d.link) : window.open(d.link,'_blank'); }
   else if (d.tab){ if (sheetId) closeSheet(); tab=d.tab; editing=false; render(); window.scrollTo(0,0); }
   else if (d.sort){
@@ -240,6 +267,7 @@ document.addEventListener('click', e=>{
   else if (d.share){ const it = ITEMS[d.share]; const url = 'https://t.me/zayberman_bot?startapp=' + slug(it.title); const text = it.title + (it.year ? ' ('+it.year+')' : ''); const link = 'https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(text); tg && tg.openTelegramLink ? tg.openTelegramLink(link) : window.open(link,'_blank'); }
   else if (d.geo){ geo = geo==='' ? 'ru' : geo==='ru' ? 'world' : ''; if (geo){ gf = 'all'; localStorage.setItem('open_gf','all'); } localStorage.setItem('open_geo', geo); renderList(); }
   else if (d.th){ th = (th===d.th) ? '' : d.th; renderList(); }
+  else if (d.tg){ tgl = d.tg; localStorage.setItem('open_tg', tgl); renderList(); }
   else if (d.bf){ bf = d.bf; localStorage.setItem('open_bf', bf); renderList(); }
   else if (d.gf){ gf = d.gf; geo = ''; localStorage.setItem('open_geo',''); localStorage.setItem('open_gf', gf); renderList(); }
   else if (d.cat){ cat = (cat===d.cat) ? '' : d.cat; renderList(); }
